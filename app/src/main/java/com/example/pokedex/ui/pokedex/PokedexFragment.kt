@@ -29,7 +29,17 @@ class PokedexFragment : Fragment() {
 
         // Configura el RecyclerView
         val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerView)
-        adapter = PokemonAdapter(pokemonList)
+        adapter = PokemonAdapter(
+            pokemonList,
+            onFavoriteClick = { pokemon ->
+                pokemon.isFavorite = !pokemon.isFavorite
+                updatePokemonList()
+            },
+            onCapturedClick = { pokemon ->
+                pokemon.isCaptured = !pokemon.isCaptured
+                updatePokemonList()
+            }
+        )
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
@@ -63,17 +73,26 @@ class PokedexFragment : Fragment() {
                 val response = RetrofitInstance.api.getPokemonList()
                 val pokemonApiList = response.results
 
-                // Convierte la lista de la API a tu modelo de Pokémon
-                val pokemonListFromApi = pokemonApiList.map { pokemonApi ->
-                    Pokemon(
-                        name = pokemonApi.name,
+                // Para cada Pokémon, obtén sus detalles
+                pokemonApiList.forEach { pokemonApi ->
+                    val id = pokemonApi.url.split("/").filter { it.isNotEmpty() }.last().toInt()
+                    val pokemonDetail = RetrofitInstance.api.getPokemonDetail(id)
+
+                    // Convierte la respuesta de la API a tu modelo de Pokémon
+                    val pokemon = Pokemon(
+                        id = pokemonDetail.id,
+                        name = pokemonDetail.name,
+                        types = pokemonDetail.types.map { it.type.name },
+                        imageUrl = pokemonDetail.sprites.front_default,
                         isFavorite = false, // Por defecto, no es favorito
                         isCaptured = false // Por defecto, no está capturado
                     )
+
+                    // Agrega el Pokémon a la lista
+                    pokemonList.add(pokemon)
                 }
 
                 // Actualiza la lista de Pokémon
-                pokemonList.addAll(pokemonListFromApi)
                 updatePokemonList()
             } catch (e: Exception) {
                 // Maneja errores (por ejemplo, muestra un mensaje al usuario)

@@ -4,14 +4,57 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="8dp">
+    android:padding="8dp"
+    android:background="@color/white">
+
+    <!-- Imagen del Pokémon -->
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_gravity="center_horizontal"
+        android:contentDescription="pokemon_image" />
+
+    <!-- ID del Pokémon -->
+    <TextView
+        android:id="@+id/idTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ID"
+        android:textSize="14sp"
+        android:textColor="@color/black" />
 
     <!-- Nombre del Pokémon -->
     <TextView
         android:id="@+id/nameTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="Nombre"
         android:textSize="18sp"
-        android:textColor="@color/black"
-        android:text="Pokémon Name" />
+        android:textColor="@color/black" />
+
+    <!-- Tipo(s) del Pokémon -->
+    <TextView
+        android:id="@+id/typesTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tipo"
+        android:textSize="14sp"
+        android:textColor="@color/black" />
+
+    <!-- Botón para marcar como favorito -->
+    <Button
+        android:id="@+id/favoriteButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Marcar favorito"
+        android:layout_marginTop="8dp" />
+
+    <!-- Botón para marcar como capturado -->
+    <Button
+        android:id="@+id/capturedButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Capturar"
+        android:layout_marginTop="8dp" />
 </LinearLayout>

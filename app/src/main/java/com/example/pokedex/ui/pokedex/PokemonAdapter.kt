@@ -1,22 +1,43 @@
 package com.example.pokedex.ui.pokedex
 
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.TextView
+import android.view.*
+import android.widget.*
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.pokedex.R
 import com.example.pokedex.data.model.Pokemon
 
-class PokemonAdapter(private var pokemonList: List<Pokemon>) :
-    RecyclerView.Adapter<PokemonAdapter.PokemonViewHolder>() {
+class PokemonAdapter(
+    private var pokemonList: List<Pokemon>,
+    private val onFavoriteClick: (Pokemon) -> Unit,
+    private val onCapturedClick: (Pokemon) -> Unit
+) : RecyclerView.Adapter<PokemonAdapter.PokemonViewHolder>() {
 
-    // ViewHolder para Pokémon
-    class PokemonViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class PokemonViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val nameTextView: TextView = itemView.findViewById(R.id.nameTextView)
+        private val idTextView: TextView = itemView.findViewById(R.id.idTextView)
+        private val typesTextView: TextView = itemView.findViewById(R.id.typesTextView)
+        private val imageView: ImageView = itemView.findViewById(R.id.imageView)
+        private val favoriteButton: Button = itemView.findViewById(R.id.favoriteButton)
+        private val capturedButton: Button = itemView.findViewById(R.id.capturedButton)
 
         fun bind(pokemon: Pokemon) {
             nameTextView.text = pokemon.name
+            idTextView.text = "#${pokemon.id}"
+            typesTextView.text = pokemon.types.joinToString(", ")
+            Glide.with(itemView.context).load(pokemon.imageUrl).into(imageView)
+
+            // Configura los botones
+            favoriteButton.text = if (pokemon.isFavorite) "Quitar favorito" else "Marcar favorito"
+            capturedButton.text = if (pokemon.isCaptured) "Liberar" else "Capturar"
+
+            favoriteButton.setOnClickListener {
+                onFavoriteClick(pokemon)
+            }
+
+            capturedButton.setOnClickListener {
+                onCapturedClick(pokemon)
+            }
         }
     }
 
