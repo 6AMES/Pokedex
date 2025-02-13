@@ -5,11 +5,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.pokedex.R
-import com.example.pokedex.model.FilterType
-import com.example.pokedex.model.Pokemon
+import com.example.pokedex.data.api.RetrofitInstance
+import com.example.pokedex.data.model.FilterType
+import com.example.pokedex.data.model.Pokemon
+import kotlinx.coroutines.launch
 
 class PokedexFragment : Fragment() {
 
@@ -30,7 +33,7 @@ class PokedexFragment : Fragment() {
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        // Carga la lista de Pokémon
+        // Carga la lista de Pokémon desde la API
         loadPokemonList()
 
         return view
@@ -52,19 +55,30 @@ class PokedexFragment : Fragment() {
         adapter.updateList(filteredList)
     }
 
-    // Función para cargar la lista de Pokémon (simulada)
+    // Función para cargar la lista de Pokémon desde la API
     private fun loadPokemonList() {
-        // Aquí cargas la lista de Pokémon desde la API o cualquier otra fuente
-        // Por ahora, usamos una lista simulada
-        pokemonList.addAll(
-            listOf(
-                Pokemon("Pikachu", isFavorite = true, isCaptured = false),
-                Pokemon("Bulbasaur", isFavorite = false, isCaptured = true),
-                Pokemon("Charmander", isFavorite = true, isCaptured = true),
-                Pokemon("Squirtle", isFavorite = false, isCaptured = false),
-                Pokemon("Eevee", isFavorite = true, isCaptured = true)
-            )
-        )
-        updatePokemonList()
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                // Obtén la lista de Pokémon desde la API
+                val response = RetrofitInstance.api.getPokemonList()
+                val pokemonApiList = response.results
+
+                // Convierte la lista de la API a tu modelo de Pokémon
+                val pokemonListFromApi = pokemonApiList.map { pokemonApi ->
+                    Pokemon(
+                        name = pokemonApi.name,
+                        isFavorite = false, // Por defecto, no es favorito
+                        isCaptured = false // Por defecto, no está capturado
+                    )
+                }
+
+                // Actualiza la lista de Pokémon
+                pokemonList.addAll(pokemonListFromApi)
+                updatePokemonList()
+            } catch (e: Exception) {
+                // Maneja errores (por ejemplo, muestra un mensaje al usuario)
+                e.printStackTrace()
+            }
+        }
     }
 }

@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import androidx.fragment.app.Fragment
 import com.example.pokedex.R
-import com.example.pokedex.model.FilterType
+import com.example.pokedex.data.model.FilterType
 import com.example.pokedex.ui.main.MainActivity
 
 class HeaderFragment : Fragment() {

@@ -7,8 +7,7 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import com.example.pokedex.R
-import com.example.pokedex.model.FilterType
-import com.example.pokedex.ui.header.HeaderFragment
+import com.example.pokedex.data.model.FilterType
 import com.example.pokedex.ui.pokedex.PokedexFragment
 import com.google.android.material.navigation.NavigationView
 

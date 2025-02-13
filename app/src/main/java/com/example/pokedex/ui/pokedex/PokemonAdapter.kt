@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.pokedex.R
-import com.example.pokedex.model.Pokemon
+import com.example.pokedex.data.model.Pokemon
 
 class PokemonAdapter(private var pokemonList: List<Pokemon>) :
     RecyclerView.Adapter<PokemonAdapter.PokemonViewHolder>() {

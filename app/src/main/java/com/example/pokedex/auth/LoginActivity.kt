@@ -6,15 +6,18 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.pokedex.ui.main.MainActivity
 import com.example.pokedex.databinding.ActivityLoginBinding
+import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 
 class LoginActivity : AppCompatActivity() {
-
     private lateinit var binding: ActivityLoginBinding
     private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Inicializar Firebase
+        FirebaseApp.initializeApp(this)
 
         // Configurar View Binding
         binding = ActivityLoginBinding.inflate(layoutInflater)
@@ -27,7 +30,6 @@ class LoginActivity : AppCompatActivity() {
         binding.loginButton.setOnClickListener {
             val email = binding.emailEditText.text.toString()
             val password = binding.passwordEditText.text.toString()
-
             if (email.isNotEmpty() && password.isNotEmpty()) {
                 loginUser(email, password)
             } else {
