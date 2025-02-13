@@ -1,60 +1,108 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="8dp"
-    android:background="@color/white">
+    android:layout_margin="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp">
 
-    <!-- Imagen del Pokémon -->
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_gravity="center_horizontal"
-        android:contentDescription="pokemon_image" />
-
-    <!-- ID del Pokémon -->
-    <TextView
-        android:id="@+id/idTextView"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="ID"
-        android:textSize="14sp"
-        android:textColor="@color/black" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="12dp">
 
-    <!-- Nombre del Pokémon -->
-    <TextView
-        android:id="@+id/nameTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Nombre"
-        android:textSize="18sp"
-        android:textColor="@color/black" />
+        <!-- Nombre, ID y Tipo -->
 
-    <!-- Tipo(s) del Pokémon -->
-    <TextView
-        android:id="@+id/typesTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Tipo"
-        android:textSize="14sp"
-        android:textColor="@color/black" />
+        <!-- Iconos de favorito y capturado -->
 
-    <!-- Botón para marcar como favorito -->
-    <Button
-        android:id="@+id/favoriteButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Marcar favorito"
-        android:layout_marginTop="8dp" />
+        <LinearLayout
+            android:layout_width="141dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:orientation="horizontal">
 
-    <!-- Botón para marcar como capturado -->
-    <Button
-        android:id="@+id/capturedButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Capturar"
-        android:layout_marginTop="8dp" />
-</LinearLayout>
+            <TableLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/idTextView"
+                        android:layout_width="36dp"
+                        android:layout_height="wrap_content"
+                        android:text="ID"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/nameTextView"
+                        android:layout_width="154dp"
+                        android:layout_height="wrap_content"
+                        android:text="Nombre"
+                        android:textColor="@color/black"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <ImageButton
+                        android:id="@+id/favoriteButton"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="8dp"
+                        android:backgroundTint="#00FFFFFF"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:scaleType="center"
+                        android:src="@drawable/ic_favorite_unselected" />
+
+                    <ImageButton
+                        android:id="@+id/capturedButton"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="8dp"
+                        android:backgroundTint="#00FFFFFF"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:src="@drawable/ic_captured_unselected" />
+
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent">
+
+                    <TextView
+                        android:id="@+id/typesTextView"
+                        android:layout_width="50dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="Tipo"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                </TableRow>
+
+            </TableLayout>
+
+        </LinearLayout>
+
+        <!-- Botón de Tipo -->
+
+        <!-- Imagen del Pokémon -->
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginStart="8dp" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

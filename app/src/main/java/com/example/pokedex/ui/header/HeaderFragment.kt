@@ -1,16 +1,16 @@
 package com.example.pokedex.ui.header
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.ImageButton
+import android.view.*
+import android.widget.*
 import androidx.fragment.app.Fragment
 import com.example.pokedex.R
 import com.example.pokedex.data.model.FilterType
 import com.example.pokedex.ui.main.MainActivity
 
 class HeaderFragment : Fragment() {
+    private var currentFilter: FilterType = FilterType.ALL
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -24,14 +24,31 @@ class HeaderFragment : Fragment() {
 
         // Configura el botón de favoritos
         view.findViewById<ImageButton>(R.id.favoriteButton).setOnClickListener {
-            (activity as MainActivity).applyFilter(FilterType.FAVORITES)
+            if (currentFilter == FilterType.FAVORITES) {
+                // Si el filtro activo es FAVORITES, muestra todos los Pokémon
+                (activity as MainActivity).applyFilter(FilterType.ALL)
+                currentFilter = FilterType.ALL  // Restablece el filtro a "todos"
+            } else {
+                // Aplica el filtro FAVORITES
+                (activity as MainActivity).applyFilter(FilterType.FAVORITES)
+                currentFilter = FilterType.FAVORITES
+            }
         }
 
         // Configura el botón de capturados
         view.findViewById<ImageButton>(R.id.capturedButton).setOnClickListener {
-            (activity as MainActivity).applyFilter(FilterType.CAPTURED)
+            if (currentFilter == FilterType.CAPTURED) {
+                // Si el filtro activo es CAPTURED, muestra todos los Pokémon
+                (activity as MainActivity).applyFilter(FilterType.ALL)
+                currentFilter = FilterType.ALL  // Restablece el filtro a "todos"
+            } else {
+                // Aplica el filtro CAPTURED
+                (activity as MainActivity).applyFilter(FilterType.CAPTURED)
+                currentFilter = FilterType.CAPTURED
+            }
         }
 
         return view
     }
 }
+

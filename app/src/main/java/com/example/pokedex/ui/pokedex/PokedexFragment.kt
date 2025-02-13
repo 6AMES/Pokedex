@@ -1,6 +1,7 @@
 package com.example.pokedex.ui.pokedex
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,6 +13,8 @@ import com.example.pokedex.R
 import com.example.pokedex.data.api.RetrofitInstance
 import com.example.pokedex.data.model.FilterType
 import com.example.pokedex.data.model.Pokemon
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 
 class PokedexFragment : Fragment() {
@@ -19,85 +22,172 @@ class PokedexFragment : Fragment() {
     private lateinit var adapter: PokemonAdapter
     private val pokemonList = mutableListOf<Pokemon>()
     private var currentFilter: FilterType = FilterType.ALL
+    private var currentPage = 0
+    private val pageSize = 20 // Número de Pokémon por página
+    private var isLoading = false // Para evitar múltiples cargas simultáneas
+
+    // Firebase
+    private val db = FirebaseFirestore.getInstance()
+    private val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Infla el layout del fragmento
-        val view = inflater.inflate(R.layout.fragment_pokedex, container, false)
+        // Infla la vista del fragmento
+        val rootView = inflater.inflate(R.layout.fragment_pokedex, container, false)
 
-        // Configura el RecyclerView
-        val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerView)
+        // Inicializa el adaptador
         adapter = PokemonAdapter(
             pokemonList,
             onFavoriteClick = { pokemon ->
-                pokemon.isFavorite = !pokemon.isFavorite
-                updatePokemonList()
+                toggleFavorite(pokemon)
+                adapter.notifyItemChanged(pokemonList.indexOf(pokemon)) // Actualiza la vista
             },
             onCapturedClick = { pokemon ->
-                pokemon.isCaptured = !pokemon.isCaptured
-                updatePokemonList()
+                toggleCaptured(pokemon)
+                adapter.notifyItemChanged(pokemonList.indexOf(pokemon)) // Actualiza la vista
             }
         )
-        recyclerView.adapter = adapter
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        // Carga la lista de Pokémon desde la API
+        // Llama a loadPokemonList después de inflar la vista
         loadPokemonList()
 
-        return view
+        return rootView
     }
 
-    // Función para aplicar filtros
-    fun applyFilter(filterType: FilterType) {
-        currentFilter = filterType
-        updatePokemonList()
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Llama a setupRecyclerView después de que la vista haya sido creada
+        setupRecyclerView() // Ya no es necesario pasar parámetros
     }
 
-    // Función para actualizar la lista de Pokémon según el filtro
-    private fun updatePokemonList() {
-        val filteredList = when (currentFilter) {
-            FilterType.ALL -> pokemonList
-            FilterType.FAVORITES -> pokemonList.filter { it.isFavorite }
-            FilterType.CAPTURED -> pokemonList.filter { it.isCaptured }
-        }
-        adapter.updateList(filteredList)
+    private fun setupRecyclerView() {
+        val recyclerView = requireView().findViewById<RecyclerView>(R.id.recyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        recyclerView.adapter = adapter // Asigna el adaptador
+
+        // Agrega un ScrollListener para la paginación
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                val visibleItemCount = layoutManager.childCount
+                val totalItemCount = layoutManager.itemCount
+                val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
+
+                // Verifica si el usuario llegó al final de la lista
+                if (!isLoading && (visibleItemCount + firstVisibleItemPosition) >= totalItemCount
+                    && firstVisibleItemPosition >= 0
+                ) {
+                    loadPokemonList() // Carga más Pokémon
+                }
+            }
+        })
     }
 
-    // Función para cargar la lista de Pokémon desde la API
     private fun loadPokemonList() {
+        Log.d("PokedexFragment", "loadPokemonList() llamada")
+
+        if (currentFilter != FilterType.ALL) return
+
+        if (isLoading) return
+        isLoading = true
+
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                // Obtén la lista de Pokémon desde la API
-                val response = RetrofitInstance.api.getPokemonList()
+                Log.d("PokedexFragment", "Cargando Pokémon...")
+
+                val response = RetrofitInstance.api.getPokemonList(
+                    limit = pageSize,
+                    offset = currentPage * pageSize
+                )
                 val pokemonApiList = response.results
 
-                // Para cada Pokémon, obtén sus detalles
+                Log.d("PokedexFragment", "Recibido Pokémon: ${pokemonApiList.size}")
+
+                val newPokemonList = mutableListOf<Pokemon>()
+
                 pokemonApiList.forEach { pokemonApi ->
                     val id = pokemonApi.url.split("/").filter { it.isNotEmpty() }.last().toInt()
-                    val pokemonDetail = RetrofitInstance.api.getPokemonDetail(id)
 
-                    // Convierte la respuesta de la API a tu modelo de Pokémon
+                    val existingPokemon = pokemonList.find { it.id == id }
+
+                    val pokemonDetail = RetrofitInstance.api.getPokemonDetail(id)
                     val pokemon = Pokemon(
                         id = pokemonDetail.id,
                         name = pokemonDetail.name,
                         types = pokemonDetail.types.map { it.type.name },
                         imageUrl = pokemonDetail.sprites.front_default,
-                        isFavorite = false, // Por defecto, no es favorito
-                        isCaptured = false // Por defecto, no está capturado
+                        isFavorite = existingPokemon?.isFavorite ?: false,
+                        isCaptured = existingPokemon?.isCaptured ?: false
                     )
 
-                    // Agrega el Pokémon a la lista
-                    pokemonList.add(pokemon)
+                    newPokemonList.add(pokemon)
                 }
 
-                // Actualiza la lista de Pokémon
-                updatePokemonList()
+                Log.d("PokedexFragment", "Cantidad de Pokémon procesados: ${newPokemonList.size}")
+
+                if (newPokemonList.isNotEmpty()) {
+                    adapter.updateList(newPokemonList)
+                    currentPage++
+                }
+
             } catch (e: Exception) {
-                // Maneja errores (por ejemplo, muestra un mensaje al usuario)
                 e.printStackTrace()
+                Log.e("PokedexFragment", "Error al cargar los Pokémon: ${e.message}")
+            } finally {
+                isLoading = false
             }
+        }
+    }
+
+    // Función para aplicar filtros
+    fun applyFilter(filterType: FilterType) {
+        currentFilter = filterType
+
+        val filteredList = when (filterType) {
+            FilterType.ALL -> pokemonList
+            FilterType.FAVORITES -> pokemonList.filter { it.isFavorite }
+            FilterType.CAPTURED -> pokemonList.filter { it.isCaptured }
+        }
+
+        adapter.updateList(filteredList)
+    }
+
+    // Función para guardar el estado de favorito en Firebase
+    private fun toggleFavorite(pokemon: Pokemon) {
+        val userRef = db.collection("users").document(userId)
+
+        userRef.get().addOnSuccessListener { document ->
+            val favorites = document.get("favorites") as? MutableList<Int> ?: mutableListOf()
+
+            if (pokemon.isFavorite) {
+                favorites.add(pokemon.id)
+            } else {
+                favorites.remove(pokemon.id)
+            }
+
+            userRef.update("favorites", favorites)
+        }
+    }
+
+    // Función para guardar el estado de capturado en Firebase
+    private fun toggleCaptured(pokemon: Pokemon) {
+        val userRef = db.collection("users").document(userId)
+
+        userRef.get().addOnSuccessListener { document ->
+            val captured = document.get("captured") as? MutableList<Int> ?: mutableListOf()
+
+            if (pokemon.isCaptured) {
+                captured.add(pokemon.id)
+            } else {
+                captured.remove(pokemon.id)
+            }
+
+            userRef.update("captured", captured)
         }
     }
 }
