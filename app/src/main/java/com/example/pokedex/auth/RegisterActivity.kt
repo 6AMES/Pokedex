@@ -2,11 +2,14 @@ package com.example.pokedex.auth
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.pokedex.ui.main.MainActivity
 import com.example.pokedex.databinding.ActivityRegisterBinding
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 
 class RegisterActivity : AppCompatActivity() {
 
@@ -49,12 +52,38 @@ class RegisterActivity : AppCompatActivity() {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
+                    // Obtener el ID del usuario recién registrado
+                    val userId = auth.currentUser?.uid ?: ""
+                    if (userId.isNotEmpty()) {
+                        // Crear el documento del usuario en Firestore
+                        createUserDocument(userId)
+                    }
+
                     // Ir a la actividad principal
                     startActivity(Intent(this, MainActivity::class.java))
                     finish()
                 } else {
                     Toast.makeText(this, "Error: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                 }
+            }
+    }
+
+    private fun createUserDocument(userId: String) {
+        val userRef = FirebaseFirestore.getInstance().collection("users").document(userId)
+
+        // Datos iniciales del usuario
+        val userData = hashMapOf(
+            "favorites" to mutableListOf<Int>(), // Lista vacía de favoritos
+            "captured" to mutableListOf<Int>()   // Lista vacía de capturados
+        )
+
+        // Crea el documento si no existe
+        userRef.set(userData, SetOptions.merge())
+            .addOnSuccessListener {
+                Log.d("RegisterActivity", "Documento del usuario creado: $userId")
+            }
+            .addOnFailureListener { e ->
+                Log.e("RegisterActivity", "Error al crear el documento del usuario: ${e.message}")
             }
     }
 }

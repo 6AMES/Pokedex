@@ -40,6 +40,7 @@ android {
 dependencies {
     // Glide
     implementation ("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor ("com.github.bumptech.glide:compiler:4.16.0")
 
     // Retrofit (PokéAPI)
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
