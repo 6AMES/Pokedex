@@ -18,7 +18,8 @@
             android:id="@+id/headerFragmentContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:name="com.example.pokedex.ui.header.HeaderFragment" />
+            android:name="com.example.pokedex.ui.header.HeaderFragment"
+            android:layout_marginTop="50dp" />
 
         <!-- Contenedor para los fragmentos de filtros y lista -->
         <FrameLayout

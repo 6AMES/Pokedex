@@ -12,12 +12,12 @@ import com.example.pokedex.data.model.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 class PokedexFragment : Fragment() {
 
     private lateinit var adapter: PokemonAdapter
     private val pokemonList = mutableListOf<Pokemon>()
+    private val filteredList = mutableListOf<Pokemon>()
     private var currentFilter: FilterType = FilterType.ALL
     private var currentPage = 0
     private val pageSize = 25
@@ -37,7 +37,7 @@ class PokedexFragment : Fragment() {
         val rootView = inflater.inflate(R.layout.fragment_pokedex, container, false)
 
         adapter = PokemonAdapter(
-            pokemonList,
+            filteredList, // Usamos la lista filtrada directamente
             onFavoriteClick = { pokemon -> toggleFavorite(pokemon) },
             onCapturedClick = { pokemon -> toggleCaptured(pokemon) }
         )
@@ -52,27 +52,14 @@ class PokedexFragment : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = adapter
 
-        // 1️⃣ Primero cargamos favoritos y capturados, luego los Pokémon
+        // Cargamos los favoritos y capturados primero, luego los Pokémon
         loadFavoritesAndCaptured {
+            // Ahora cargamos los Pokémon sin esperar al scroll
             loadPokemonList()
         }
-
-        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)
-                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-                val totalItemCount = layoutManager.itemCount
-                val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
-
-                if (!isLoading && lastVisibleItemPosition >= totalItemCount - 1) {
-                    currentPage++
-                    loadPokemonList()
-                }
-            }
-        })
     }
 
-    // 2️⃣ Carga los favoritos y capturados ANTES de cargar Pokémon
+    // Carga los favoritos y capturados ANTES de cargar Pokémon
     private fun loadFavoritesAndCaptured(onComplete: () -> Unit) {
         if (userId.isEmpty()) return
 
@@ -91,13 +78,14 @@ class PokedexFragment : Fragment() {
         }
     }
 
-    // 3️⃣ Cargar la lista de Pokémon después de Firebase
+    // Cargar la lista de Pokémon en bloques de 25 al principio
     private fun loadPokemonList() {
         if (isLoading) return
         isLoading = true
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
+                // Cargamos los Pokémon en bloques de 25, desde el primer bloque
                 val response = RetrofitInstance.api.getPokemonList(limit = pageSize, offset = currentPage * pageSize)
                 val pokemonApiList = response.results
                 val newPokemonList = mutableListOf<Pokemon>()
@@ -111,7 +99,7 @@ class PokedexFragment : Fragment() {
                         name = pokemonDetail.name,
                         types = pokemonDetail.types.map { it.type.name },
                         imageUrl = pokemonDetail.sprites.front_default,
-                        isFavorite = favorites.contains(id),  // Ahora sí se asignan correctamente
+                        isFavorite = favorites.contains(id),
                         isCaptured = captured.contains(id)
                     )
 
@@ -119,29 +107,35 @@ class PokedexFragment : Fragment() {
                 }
 
                 pokemonList.addAll(newPokemonList)
-                applyFilter(currentFilter)
-                adapter.notifyDataSetChanged()  // Refresca la lista completa
+                applyFilter(currentFilter) // Aplica el filtro sobre todos los Pokémon cargados
+                adapter.notifyDataSetChanged() // Actualiza la vista
 
             } catch (e: Exception) {
                 Log.e("PokedexFragment", "Error al cargar los Pokémon: ${e.message}")
             } finally {
                 isLoading = false
+                currentPage++ // Aumenta la página para la próxima carga
+                // Después de cargar, si es necesario, puedes cargar más Pokémon
+                loadPokemonList() // Llama nuevamente a la función para seguir cargando en bloques de 25
             }
         }
     }
 
-    // Función para aplicar el filtro actual a la lista
+    // Aplica el filtro a la lista de Pokémon
     fun applyFilter(filterType: FilterType) {
         currentFilter = filterType
-        val filteredList = pokemonList.filter { pokemon ->
-            when (currentFilter) {
-                FilterType.ALL -> true
-                FilterType.FAVORITES -> pokemon.isFavorite
-                FilterType.CAPTURED -> pokemon.isCaptured
-            }
-        }
+        filteredList.clear() // Limpiamos la lista filtrada
 
-        adapter.updateList(filteredList) // Asegúrate de que tu adaptador tenga esta función
+        // Dependiendo del filtro, agregamos los Pokémon correspondientes
+        filteredList.addAll(
+            when (filterType) {
+                FilterType.ALL -> pokemonList // Todos los Pokémon
+                FilterType.FAVORITES -> pokemonList.filter { it.isFavorite } // Solo los favoritos
+                FilterType.CAPTURED -> pokemonList.filter { it.isCaptured } // Solo los capturados
+            }
+        )
+
+        adapter.updateList(filteredList) // Actualiza la lista filtrada
     }
 
     private fun toggleFavorite(pokemon: Pokemon) {

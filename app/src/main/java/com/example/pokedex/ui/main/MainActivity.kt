@@ -3,6 +3,7 @@ package com.example.pokedex.ui.main
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
@@ -20,6 +21,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
+
+        // Cambiar color barra de notificaciones del móvil
+        window.statusBarColor = ContextCompat.getColor(this, R.color.transparent)
 
         // Inicializa las vistas
         drawerLayout = findViewById(R.id.drawerLayout)
