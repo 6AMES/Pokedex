@@ -7,10 +7,12 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.example.pokedex.R
 import com.example.pokedex.data.model.FilterType
 import com.example.pokedex.ui.pokedex.PokedexFragment
 import com.google.android.material.navigation.NavigationView
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -55,9 +57,12 @@ class MainActivity : AppCompatActivity() {
 
     // Función para reemplazar fragmentos en el contenedor principal
     private fun replaceFragment(fragment: Fragment) {
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer, fragment)
-            .commit()
+        val existingFragment = supportFragmentManager.findFragmentByTag(fragment::class.java.simpleName)
+        if (existingFragment == null) {
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, fragment, fragment::class.java.simpleName)
+                .commit()
+        }
     }
 
     // Función para abrir el menú lateral
@@ -70,8 +75,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     // Función para aplicar filtros en el PokedexFragment
-    fun applyFilter(filterType: FilterType) {
+    fun applyFilter(filterType: FilterType, type: String? = null) {
         val pokedexFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer) as? PokedexFragment
-        pokedexFragment?.applyFilter(filterType)
+        pokedexFragment?.applyFilter(filterType, type)
+    }
+
+    fun loadAllPokemon(onComplete: (() -> Unit)? = null) {
+        val pokedexFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer) as? PokedexFragment
+        pokedexFragment?.loadPokemonList(resetList = true, onComplete = onComplete)
     }
 }

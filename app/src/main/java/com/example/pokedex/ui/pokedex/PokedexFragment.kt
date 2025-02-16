@@ -3,6 +3,7 @@ package com.example.pokedex.ui.pokedex
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.ProgressBar
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.*
@@ -22,6 +23,9 @@ class PokedexFragment : Fragment() {
     private var currentPage = 0
     private val pageSize = 25
     private var isLoading = false
+    private var firstLoad = true
+    private var isTypeFilterActive = false
+    private var selectedType: String? = null
 
     // Firebase
     private val db = FirebaseFirestore.getInstance()
@@ -79,63 +83,101 @@ class PokedexFragment : Fragment() {
     }
 
     // Cargar la lista de Pokémon en bloques de 25 al principio
-    private fun loadPokemonList() {
+    fun loadPokemonList(resetList: Boolean = false, onComplete: (() -> Unit)? = null) {
+        if (resetList) {
+            pokemonList.clear()
+            currentPage = 0
+            firstLoad = true // Reinicia la bandera cuando se reinicia la lista
+        }
+
         if (isLoading) return
         isLoading = true
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                // Cargamos los Pokémon en bloques de 25, desde el primer bloque
+                if (firstLoad) showLoadingIndicator(true)
+
                 val response = RetrofitInstance.api.getPokemonList(limit = pageSize, offset = currentPage * pageSize)
                 val pokemonApiList = response.results
                 val newPokemonList = mutableListOf<Pokemon>()
 
                 pokemonApiList.forEach { pokemonApi ->
                     val id = pokemonApi.url.split("/").filter { it.isNotEmpty() }.last().toInt()
+                    Log.d("PokedexFragment", "Cargando detalles del Pokémon con ID: $id")
+
                     val pokemonDetail = RetrofitInstance.api.getPokemonDetail(id)
+                    val imageUrl = pokemonDetail.sprites.front_default ?: "https://example.com/default-image.png"
 
                     val pokemon = Pokemon(
                         id = id,
                         name = pokemonDetail.name,
                         types = pokemonDetail.types.map { it.type.name },
-                        imageUrl = pokemonDetail.sprites.front_default,
+                        imageUrl = imageUrl,
                         isFavorite = favorites.contains(id),
                         isCaptured = captured.contains(id)
                     )
-
                     newPokemonList.add(pokemon)
                 }
 
+                // Agrega los nuevos Pokémon a la lista principal sin borrar nada
                 pokemonList.addAll(newPokemonList)
-                applyFilter(currentFilter) // Aplica el filtro sobre todos los Pokémon cargados
-                adapter.notifyDataSetChanged() // Actualiza la vista
+                Log.d("PokedexFragment", "Se han agregado ${newPokemonList.size} Pokémon a pokemonList.")
+
+                // Vuelve a aplicar el filtro para actualizar la lista en pantalla
+                applyFilter(currentFilter)
+
+                currentPage++
+                adapter.notifyDataSetChanged()
+
+                Log.d("PokedexFragment", "Paginación completada. Página actual: $currentPage")
 
             } catch (e: Exception) {
                 Log.e("PokedexFragment", "Error al cargar los Pokémon: ${e.message}")
             } finally {
+                if (firstLoad) {
+                    showLoadingIndicator(false)
+                    firstLoad = false
+                }
                 isLoading = false
-                currentPage++ // Aumenta la página para la próxima carga
-                // Después de cargar, si es necesario, puedes cargar más Pokémon
-                loadPokemonList() // Llama nuevamente a la función para seguir cargando en bloques de 25
+
+                // Llamamos a la función de finalización si existe
+                onComplete?.invoke()
+
+                // Siempre continuar la carga hasta llegar al total (por ejemplo, 1025 Pokémon)
+                if (currentPage * pageSize < 1025) {
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        loadPokemonList()
+                    }
+                }
             }
         }
     }
 
     // Aplica el filtro a la lista de Pokémon
-    fun applyFilter(filterType: FilterType) {
+    fun applyFilter(filterType: FilterType, type: String? = null) {
         currentFilter = filterType
-        filteredList.clear() // Limpiamos la lista filtrada
-
-        // Dependiendo del filtro, agregamos los Pokémon correspondientes
+        var effectiveType = type
+        if (filterType == FilterType.TYPE) {
+            // Si no se recibe un tipo, usamos el que ya se guardó previamente
+            if (effectiveType == null) {
+                effectiveType = selectedType
+            } else {
+                selectedType = effectiveType
+            }
+        }
+        Log.d("PokedexFragment", "Aplicando filtro: $filterType con tipo: $effectiveType")
+        filteredList.clear()
         filteredList.addAll(
             when (filterType) {
-                FilterType.ALL -> pokemonList // Todos los Pokémon
-                FilterType.FAVORITES -> pokemonList.filter { it.isFavorite } // Solo los favoritos
-                FilterType.CAPTURED -> pokemonList.filter { it.isCaptured } // Solo los capturados
+                FilterType.ALL -> pokemonList // Usa la lista completa de Pokémon
+                FilterType.FAVORITES -> pokemonList.filter { it.isFavorite }
+                FilterType.CAPTURED -> pokemonList.filter { it.isCaptured }
+                FilterType.TYPE -> pokemonList.filter { effectiveType != null && it.types.any { t -> t.lowercase() == effectiveType.lowercase() } }
+                else -> listOf()
             }
         )
-
-        adapter.updateList(filteredList) // Actualiza la lista filtrada
+        Log.d("PokedexFragment", "Filtrados ${filteredList.size} Pokémon.")
+        adapter.updateList(filteredList)
     }
 
     private fun toggleFavorite(pokemon: Pokemon) {
@@ -168,5 +210,29 @@ class PokedexFragment : Fragment() {
             if (pokemon.isCaptured) captured.add(pokemon.id) else captured.remove(pokemon.id)
             adapter.notifyItemChanged(pokemonList.indexOf(pokemon))
         }
+    }
+
+    private suspend fun loadPokemonDetail(id: Int): Pokemon {
+        return try {
+            val response = RetrofitInstance.api.getPokemonDetail(id)
+            val imageUrl = response.sprites.front_default ?: "https://example.com/default-image.png" // URL por defecto
+            Pokemon(
+                id = response.id,
+                name = response.name,
+                types = response.types.map { it.type.name },
+                imageUrl = imageUrl, // Asegúrate de que no sea nulo
+                isFavorite = favorites.contains(id),
+                isCaptured = captured.contains(id)
+            )
+        } catch (e: Exception) {
+            Log.e("PokedexFragment", "Error al cargar los detalles del Pokémon: ${e.message}")
+            throw e // O maneja el error como prefieras
+        }
+    }
+
+    private fun showLoadingIndicator(show: Boolean) {
+        // Suponiendo que tienes un ProgressBar en tu layout
+        val progressBar = view?.findViewById<ProgressBar>(R.id.progressBar)
+        progressBar?.visibility = if (show) View.VISIBLE else View.GONE
     }
 }

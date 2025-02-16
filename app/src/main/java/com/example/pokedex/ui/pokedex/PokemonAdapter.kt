@@ -1,7 +1,6 @@
 package com.example.pokedex.ui.pokedex
 
 import android.graphics.drawable.GradientDrawable
-import android.util.Log
 import android.view.*
 import android.widget.*
 import androidx.core.content.ContextCompat
@@ -105,7 +104,6 @@ class PokemonAdapter(
         }
     }
 
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PokemonViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_pokemon, parent, false)
         return PokemonViewHolder(view)
@@ -118,8 +116,7 @@ class PokemonAdapter(
     override fun getItemCount(): Int = pokemonList.size
 
     fun updateList(newList: List<Pokemon>) {
-        Log.d("PokemonAdapter", "Actualizando lista con ${newList.size} Pokémon")
         this.pokemonList = newList.toMutableList()
-        notifyDataSetChanged()
+        notifyDataSetChanged() // Notifica al adaptador que los datos han cambiado
     }
 }

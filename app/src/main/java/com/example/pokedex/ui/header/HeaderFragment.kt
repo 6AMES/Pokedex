@@ -1,14 +1,23 @@
 package com.example.pokedex.ui.header
 
 import android.content.res.ColorStateList
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.pokedex.R
+import com.example.pokedex.data.api.RetrofitInstance
 import com.example.pokedex.data.model.FilterType
 import com.example.pokedex.ui.main.MainActivity
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.button.MaterialButton
+import kotlinx.coroutines.launch
 
 class HeaderFragment : Fragment() {
     private var currentFilter: FilterType = FilterType.ALL
@@ -29,7 +38,7 @@ class HeaderFragment : Fragment() {
             (activity as MainActivity).openDrawer()
         }
 
-        // Configura los botones de favoritos y capturados
+        // Configura los botones de favoritos
         val favoriteButton = view.findViewById<ImageButton>(R.id.favoriteButton)
         favoriteButton.setOnClickListener {
             if (currentFilter == FilterType.FAVORITES) {
@@ -49,6 +58,7 @@ class HeaderFragment : Fragment() {
             }
         }
 
+        // Configura los botones de capturados
         val capturedButton = view.findViewById<ImageButton>(R.id.capturedButton)
         capturedButton.setOnClickListener {
             if (currentFilter == FilterType.CAPTURED) {
@@ -68,6 +78,12 @@ class HeaderFragment : Fragment() {
             }
         }
 
+        // Configura el botón de filtro por tipo
+        val typeButton = view.findViewById<MaterialButton>(R.id.typeButton)
+        typeButton.setOnClickListener {
+            showTypeFilterBottomSheet()
+        }
+
         return view
     }
 
@@ -85,5 +101,95 @@ class HeaderFragment : Fragment() {
 
         val capturedButton = view.findViewById<ImageButton>(R.id.capturedButton)
         capturedButton.imageTintList = defaultTint
+    }
+
+    private fun showTypeFilterBottomSheet() {
+        val bottomSheetDialog = BottomSheetDialog(requireContext())
+        val bottomSheetView = layoutInflater.inflate(R.layout.bottom_sheet_type_filter, null)
+        bottomSheetDialog.setContentView(bottomSheetView)
+        bottomSheetDialog.show()
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            // Carga los tipos de Pokémon y excluye "stellar" y "unknown"
+            val apiTypes = loadPokemonTypes()
+            // Agrega "all" al principio para representar TODOS LOS TIPOS
+            val types = listOf("all") + apiTypes
+            Log.d("HeaderFragment", "Tipos cargados: $types")
+
+            val typeAdapter = TypeAdapter(types) { selectedType ->
+                val mainActivity = activity as MainActivity
+                if (selectedType == "all") {
+                    mainActivity.applyFilter(FilterType.ALL)
+                } else {
+                    mainActivity.applyFilter(FilterType.TYPE, selectedType)
+                }
+
+                // Actualizamos el botón de filtro (typeButton)
+                val typeButton = requireView().findViewById<Button>(R.id.typeButton)
+
+                // Si se selecciona "TODOS LOS TIPOS", actualizamos el texto y el fondo
+                if (selectedType == "all") {
+                    typeButton.text = "TODOS LOS TIPOS"
+
+                    // Crear un fondo con color gris
+                    val defaultColor = ContextCompat.getColor(requireContext(), R.color.light_gray)
+
+                    // Establecer el color de fondo directamente (sin usar GradientDrawable)
+                    typeButton.setBackgroundColor(defaultColor)
+                } else {
+                    // Si se selecciona un tipo específico
+                    typeButton.text = selectedType.uppercase()
+
+                    // Mapeo de colores para cada tipo
+                    val typeColors = mapOf(
+                        "FIRE" to R.color.type_fire,
+                        "WATER" to R.color.type_water,
+                        "GRASS" to R.color.type_grass,
+                        "ELECTRIC" to R.color.type_electric,
+                        "ICE" to R.color.type_ice,
+                        "FIGHTING" to R.color.type_fighting,
+                        "POISON" to R.color.type_poison,
+                        "GROUND" to R.color.type_ground,
+                        "FLYING" to R.color.type_flying,
+                        "PSYCHIC" to R.color.type_psychic,
+                        "BUG" to R.color.type_bug,
+                        "ROCK" to R.color.type_rock,
+                        "GHOST" to R.color.type_ghost,
+                        "DRAGON" to R.color.type_dragon,
+                        "DARK" to R.color.type_dark,
+                        "STEEL" to R.color.type_steel,
+                        "FAIRY" to R.color.type_fairy,
+                        "NORMAL" to R.color.type_normal
+                    )
+
+                    // Asignar color según el tipo seleccionado
+                    val colorResId = typeColors[selectedType.uppercase()] ?: R.color.black
+                    val color = ContextCompat.getColor(requireContext(), colorResId)
+
+                    // Establecer el color de fondo directamente (sin usar GradientDrawable)
+                    typeButton.setBackgroundColor(color)
+                }
+
+                // Cerramos el BottomSheet
+                bottomSheetDialog.dismiss()
+            }
+
+            val recyclerView = bottomSheetView.findViewById<RecyclerView>(R.id.typeRecyclerView)
+            recyclerView.layoutManager = LinearLayoutManager(requireContext())
+            recyclerView.adapter = typeAdapter
+        }
+    }
+
+    private suspend fun loadPokemonTypes(): List<String> {
+        return try {
+            val response = RetrofitInstance.api.getPokemonTypes()
+            val types = response.results.map { it.name } // Obtén los nombres de los tipos
+
+            // Filtra la lista para excluir "stellar" y "unknown"
+            types.filter { it.lowercase() !in listOf("stellar", "unknown") }
+        } catch (e: Exception) {
+            Log.e("HeaderFragment", "Error al cargar los tipos de Pokémon: ${e.message}", e)
+            emptyList()
+        }
     }
 }
