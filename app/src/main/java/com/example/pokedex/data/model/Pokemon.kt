@@ -5,6 +5,7 @@ data class Pokemon(
     val name: String,
     val types: List<String>,
     val generation: String,
+    val game: String,
     val imageUrl: String,
     var isFavorite: Boolean = false,
     var isCaptured: Boolean = false

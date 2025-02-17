@@ -24,7 +24,9 @@ class PokedexFragment : Fragment() {
     private val pageSize = 25
     private var isLoading = false
     private var firstLoad = true
-    val generation = getGenerationFromPokemonId(id)
+
+    private var selectedType: String? = null
+    private var selectedGeneration: String? = null
 
     // Firebase
     private val db = FirebaseFirestore.getInstance()
@@ -107,11 +109,18 @@ class PokedexFragment : Fragment() {
                     val pokemonDetail = RetrofitInstance.api.getPokemonDetail(id)
                     val imageUrl = pokemonDetail.sprites.front_default ?: "https://example.com/default-image.png"
 
+                    // Calcular la generación para este Pokémon específico
+                    val generation = getGenerationFromPokemonId(id)
+
+                    // Obtener el primer juego en el que aparece el Pokémon (puedes ajustar esta lógica según tus necesidades)
+                    val game = getGameFromPokemonId(id)
+
                     val pokemon = Pokemon(
                         id = id,
                         name = pokemonDetail.name,
                         types = pokemonDetail.types.map { it.type.name },
                         generation = generation,
+                        game = game, // Asignar el juego aquí
                         imageUrl = imageUrl,
                         isFavorite = favorites.contains(id),
                         isCaptured = captured.contains(id)
@@ -154,27 +163,56 @@ class PokedexFragment : Fragment() {
     }
 
     // Aplica el filtro a la lista de Pokémon
-    fun applyFilter(filterType: FilterType, type: String? = null, generation: String? = null) {
+    fun applyFilter(filterType: FilterType, type: String? = null, generation: String? = null, game: String? = null) {
+        // Actualizar el filtro actual
         currentFilter = filterType
-        var effectiveType = type
-        var effectiveGeneration = generation
-        if (filterType == FilterType.TYPE) {
-            effectiveType = type
-        } else if (filterType == FilterType.GENERATION) {
-            effectiveGeneration = generation
+
+        // Actualizar el tipo seleccionado (si se proporciona)
+        if (type != null) {
+            selectedType = if (type == "all") null else type
         }
-        Log.d("PokedexFragment", "Aplicando filtro: $filterType con tipo: $effectiveType y generación: $effectiveGeneration")
+
+        // Actualizar la generación seleccionada (si se proporciona)
+        if (generation != null) {
+            selectedGeneration = if (generation == "all") null else generation
+        }
+
+        // Actualizar el juego seleccionado (si se proporciona)
+        if (game != null) {
+            selectedGame = if (game == "all") null else game
+        }
+
+        Log.d("PokedexFragment", "Aplicando filtro: $filterType con tipo: $selectedType, generación: $selectedGeneration y juego: $selectedGame")
         filteredList.clear()
+
+        // Almacenar los valores actuales en variables locales
+        val currentType = selectedType
+        val currentGeneration = selectedGeneration
+        val currentGame = selectedGame
+
+        // Aplicar los filtros
         filteredList.addAll(
-            when (filterType) {
-                FilterType.ALL -> pokemonList
-                FilterType.FAVORITES -> pokemonList.filter { it.isFavorite }
-                FilterType.CAPTURED -> pokemonList.filter { it.isCaptured }
-                FilterType.TYPE -> pokemonList.filter { effectiveType != null && it.types.any { t -> t.lowercase() == effectiveType.lowercase() } }
-                FilterType.GENERATION -> pokemonList.filter { effectiveGeneration != null && it.generation == effectiveGeneration }
-                else -> listOf()
+            pokemonList.filter { pokemon ->
+                // Filtro por tipo (si hay un tipo seleccionado)
+                val matchesType = currentType == null || pokemon.types.any { it.lowercase() == currentType.lowercase() }
+
+                // Filtro por generación (si hay una generación seleccionada)
+                val matchesGeneration = currentGeneration == null || pokemon.generation == currentGeneration
+
+                // Filtro por juego (si hay un juego seleccionado)
+                val matchesGame = currentGame == null || pokemon.game == currentGame
+
+                // Filtro por favoritos (si el filtro activo es FAVORITES)
+                val matchesFavorites = currentFilter != FilterType.FAVORITES || pokemon.isFavorite
+
+                // Filtro por capturados (si el filtro activo es CAPTURED)
+                val matchesCaptured = currentFilter != FilterType.CAPTURED || pokemon.isCaptured
+
+                // Aplicar todos los filtros
+                matchesType && matchesGeneration && matchesGame && matchesFavorites && matchesCaptured
             }
         )
+
         Log.d("PokedexFragment", "Filtrados ${filteredList.size} Pokémon.")
         adapter.updateList(filteredList)
     }
@@ -211,27 +249,7 @@ class PokedexFragment : Fragment() {
         }
     }
 
-    private suspend fun loadPokemonDetail(id: Int): Pokemon {
-        return try {
-            val response = RetrofitInstance.api.getPokemonDetail(id)
-            val imageUrl = response.sprites.front_default ?: "https://example.com/default-image.png" // URL por defecto
-            Pokemon(
-                id = response.id,
-                name = response.name,
-                types = response.types.map { it.type.name },
-                generation = generation,
-                imageUrl = imageUrl, // Asegúrate de que no sea nulo
-                isFavorite = favorites.contains(id),
-                isCaptured = captured.contains(id)
-            )
-        } catch (e: Exception) {
-            Log.e("PokedexFragment", "Error al cargar los detalles del Pokémon: ${e.message}")
-            throw e // O maneja el error como prefieras
-        }
-    }
-
     private fun showLoadingIndicator(show: Boolean) {
-        // Suponiendo que tienes un ProgressBar en tu layout
         val progressBar = view?.findViewById<ProgressBar>(R.id.progressBar)
         progressBar?.visibility = if (show) View.VISIBLE else View.GONE
     }
@@ -249,4 +267,20 @@ class PokedexFragment : Fragment() {
             else -> "generation-ix"
         }
     }
+
+    private fun getGameFromPokemonId(id: Int): String {
+        return when (id) {
+            in 1..151 -> listOf("red", "blue", "yellow").random() // Primera generación
+            in 152..251 -> listOf("gold", "silver", "crystal").random() // Segunda generación
+            in 252..386 -> listOf("ruby", "sapphire", "emerald").random() // Tercera generación
+            in 387..493 -> listOf("diamond", "pearl", "platinum").random() // Cuarta generación
+            in 494..649 -> listOf("black", "white").random() // Quinta generación
+            in 650..721 -> listOf("x", "y").random() // Sexta generación
+            in 722..809 -> listOf("sun", "moon", "ultra_sun", "ultra_moon").random() // Séptima generación
+            in 810..905 -> listOf("sword", "shield").random() // Octava generación
+            in 906..1025 -> listOf("scarlet", "violet").random() // Novena generación
+            else -> "unknown" // Para Pokémon fuera de los rangos conocidos
+        }
+    }
+
 }

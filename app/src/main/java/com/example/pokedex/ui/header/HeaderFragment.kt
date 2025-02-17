@@ -84,10 +84,16 @@ class HeaderFragment : Fragment() {
             showTypeFilterBottomSheet()
         }
 
-        // CONFIGURA EL BOTÓN DE FILTRO POR GENERACIÓN
+        // Configura el botón de filtro por generación
         val generationButton = view.findViewById<Button>(R.id.generationButton)
         generationButton.setOnClickListener {
             showGenerationFilterBottomSheet()
+        }
+
+        // Configura el botón de filtro por juego
+        val gameButton = view.findViewById<Button>(R.id.gameButton)
+        gameButton.setOnClickListener {
+            showGameFilterBottomSheet()
         }
 
         return view
@@ -109,6 +115,7 @@ class HeaderFragment : Fragment() {
         capturedButton.imageTintList = defaultTint
     }
 
+    // Dentro de showTypeFilterBottomSheet()
     private fun showTypeFilterBottomSheet() {
         val bottomSheetDialog = BottomSheetDialog(requireContext())
         val bottomSheetView = layoutInflater.inflate(R.layout.bottom_sheet_type_filter, null)
@@ -138,20 +145,17 @@ class HeaderFragment : Fragment() {
                 // Actualizamos el botón de filtro (typeButton)
                 val typeButton = requireView().findViewById<Button>(R.id.typeButton)
 
-                // Si se selecciona "TODOS LOS TIPOS", actualizamos el texto y el fondo
                 if (selectedType == "all") {
                     typeButton.text = "TODOS LOS TIPOS"
-
-                    // Crear un fondo con color gris
                     val defaultColor = ContextCompat.getColor(requireContext(), R.color.light_gray)
-
-                    // Establecer el color de fondo directamente (sin usar GradientDrawable)
                     typeButton.setBackgroundColor(defaultColor)
+                    // *** NUEVO: Actualizamos el botón de generación a "TODAS LAS GENERACIONES"
+                    val generationBtn = requireView().findViewById<Button>(R.id.generationButton)
+                    generationBtn.text = "TODAS LAS GENERACIONES"
+                    generationBtn.setBackgroundColor(defaultColor)
                 } else {
-                    // Si se selecciona un tipo específico
                     typeButton.text = selectedType.uppercase()
 
-                    // Mapeo de colores para cada tipo
                     val typeColors = mapOf(
                         "FIRE" to R.color.type_fire,
                         "WATER" to R.color.type_water,
@@ -173,15 +177,11 @@ class HeaderFragment : Fragment() {
                         "NORMAL" to R.color.type_normal
                     )
 
-                    // Asignar color según el tipo seleccionado
                     val colorResId = typeColors[selectedType.uppercase()] ?: R.color.black
                     val color = ContextCompat.getColor(requireContext(), colorResId)
-
-                    // Establecer el color de fondo directamente (sin usar GradientDrawable)
                     typeButton.setBackgroundColor(color)
                 }
 
-                // Cerramos el BottomSheet
                 bottomSheetDialog.dismiss()
             }
 
@@ -205,6 +205,7 @@ class HeaderFragment : Fragment() {
         }
     }
 
+    // Dentro de showGenerationFilterBottomSheet()
     private fun showGenerationFilterBottomSheet() {
         val bottomSheetDialog = BottomSheetDialog(requireContext())
         val bottomSheetView = layoutInflater.inflate(R.layout.bottom_sheet_type_filter, null)
@@ -213,18 +214,32 @@ class HeaderFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             // Carga las generaciones desde la API
-            val generations = loadPokemonGenerations()
+            val apiGenerations = loadPokemonGenerations()
+            // Agrega "all" al principio para representar TODAS LAS GENERACIONES
+            val generations = listOf("all") + apiGenerations
             Log.d("HeaderFragment", "Generaciones cargadas: $generations")
 
             val generationAdapter = GenerationAdapter(generations) { selectedGeneration ->
                 val mainActivity = activity as MainActivity
-                mainActivity.applyFilter(FilterType.GENERATION, selectedGeneration)
+
+                if (selectedGeneration == "all") {
+                    mainActivity.applyFilter(FilterType.ALL)
+                } else {
+                    mainActivity.applyFilter(FilterType.GENERATION, generation = selectedGeneration)
+                }
 
                 // Actualizamos el botón de filtro (generationButton)
                 val generationButton = requireView().findViewById<Button>(R.id.generationButton)
-                generationButton.text = selectedGeneration
+                generationButton.text = if (selectedGeneration == "all") "TODAS LAS GENERACIONES" else selectedGeneration.uppercase()
 
-                // Cerramos el BottomSheet
+                // *** NUEVO: Si se selecciona "all" en generación, también actualizamos el botón de tipos
+                if (selectedGeneration == "all") {
+                    val typeButton = requireView().findViewById<Button>(R.id.typeButton)
+                    typeButton.text = "TODOS LOS TIPOS"
+                    val defaultColor = ContextCompat.getColor(requireContext(), R.color.light_gray)
+                    typeButton.setBackgroundColor(defaultColor)
+                }
+
                 bottomSheetDialog.dismiss()
             }
 
@@ -240,6 +255,55 @@ class HeaderFragment : Fragment() {
             response.results.map { it.name } // Obtén los nombres de las generaciones
         } catch (e: Exception) {
             Log.e("HeaderFragment", "Error al cargar las generaciones de Pokémon: ${e.message}", e)
+            emptyList()
+        }
+    }
+
+    private fun showGameFilterBottomSheet() {
+        val bottomSheetDialog = BottomSheetDialog(requireContext())
+        val bottomSheetView = layoutInflater.inflate(R.layout.bottom_sheet_type_filter, null)
+        bottomSheetDialog.setContentView(bottomSheetView)
+        bottomSheetDialog.show()
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            // Carga los juegos desde la API
+            val apiGames = loadPokemonGames()
+
+            // Agrega "all" al principio para representar TODOS LOS JUEGOS
+            val games = listOf("all") + apiGames
+            Log.d("HeaderFragment", "Juegos cargados: $games")
+
+            val gameAdapter = GameAdapter(games) { selectedGame ->
+                val mainActivity = activity as MainActivity
+
+                if (selectedGame == "all") {
+                    // Si se selecciona "Todos los juegos", aplica el filtro ALL
+                    mainActivity.applyFilter(FilterType.ALL)
+                } else {
+                    // Si se selecciona un juego específico, aplica el filtro GAME
+                    mainActivity.applyFilter(FilterType.GAME, game = selectedGame)
+                }
+
+                // Actualizamos el botón de filtro (gameButton)
+                val gameButton = requireView().findViewById<Button>(R.id.gameButton)
+                gameButton.text = if (selectedGame == "all") "TODOS LOS JUEGOS" else selectedGame
+
+                // Cerramos el BottomSheet
+                bottomSheetDialog.dismiss()
+            }
+
+            val recyclerView = bottomSheetView.findViewById<RecyclerView>(R.id.typeRecyclerView)
+            recyclerView.layoutManager = LinearLayoutManager(requireContext())
+            recyclerView.adapter = gameAdapter
+        }
+    }
+
+    private suspend fun loadPokemonGames(): List<String> {
+        return try {
+            val response = RetrofitInstance.api.getVersionDetail(id)
+            response.results.map { it.name } // Obtén los nombres de los juegos
+        } catch (e: Exception) {
+            Log.e("HeaderFragment", "Error al cargar los juegos de Pokémon: ${e.message}", e)
             emptyList()
         }
     }
