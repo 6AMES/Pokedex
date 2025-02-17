@@ -84,6 +84,12 @@ class HeaderFragment : Fragment() {
             showTypeFilterBottomSheet()
         }
 
+        // CONFIGURA EL BOTÓN DE FILTRO POR GENERACIÓN
+        val generationButton = view.findViewById<Button>(R.id.generationButton)
+        generationButton.setOnClickListener {
+            showGenerationFilterBottomSheet()
+        }
+
         return view
     }
 
@@ -122,6 +128,11 @@ class HeaderFragment : Fragment() {
                     mainActivity.applyFilter(FilterType.ALL)
                 } else {
                     mainActivity.applyFilter(FilterType.TYPE, selectedType)
+                }
+
+                val generationButton = view?.findViewById<MaterialButton>(R.id.generationButton)
+                generationButton?.setOnClickListener {
+                    showGenerationFilterBottomSheet()
                 }
 
                 // Actualizamos el botón de filtro (typeButton)
@@ -180,6 +191,7 @@ class HeaderFragment : Fragment() {
         }
     }
 
+    // Función para cargar los tipos de Pokémon
     private suspend fun loadPokemonTypes(): List<String> {
         return try {
             val response = RetrofitInstance.api.getPokemonTypes()
@@ -189,6 +201,45 @@ class HeaderFragment : Fragment() {
             types.filter { it.lowercase() !in listOf("stellar", "unknown") }
         } catch (e: Exception) {
             Log.e("HeaderFragment", "Error al cargar los tipos de Pokémon: ${e.message}", e)
+            emptyList()
+        }
+    }
+
+    private fun showGenerationFilterBottomSheet() {
+        val bottomSheetDialog = BottomSheetDialog(requireContext())
+        val bottomSheetView = layoutInflater.inflate(R.layout.bottom_sheet_type_filter, null)
+        bottomSheetDialog.setContentView(bottomSheetView)
+        bottomSheetDialog.show()
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            // Carga las generaciones desde la API
+            val generations = loadPokemonGenerations()
+            Log.d("HeaderFragment", "Generaciones cargadas: $generations")
+
+            val generationAdapter = GenerationAdapter(generations) { selectedGeneration ->
+                val mainActivity = activity as MainActivity
+                mainActivity.applyFilter(FilterType.GENERATION, selectedGeneration)
+
+                // Actualizamos el botón de filtro (generationButton)
+                val generationButton = requireView().findViewById<Button>(R.id.generationButton)
+                generationButton.text = selectedGeneration
+
+                // Cerramos el BottomSheet
+                bottomSheetDialog.dismiss()
+            }
+
+            val recyclerView = bottomSheetView.findViewById<RecyclerView>(R.id.typeRecyclerView)
+            recyclerView.layoutManager = LinearLayoutManager(requireContext())
+            recyclerView.adapter = generationAdapter
+        }
+    }
+
+    private suspend fun loadPokemonGenerations(): List<String> {
+        return try {
+            val response = RetrofitInstance.api.getPokemonGenerations()
+            response.results.map { it.name } // Obtén los nombres de las generaciones
+        } catch (e: Exception) {
+            Log.e("HeaderFragment", "Error al cargar las generaciones de Pokémon: ${e.message}", e)
             emptyList()
         }
     }

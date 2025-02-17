@@ -75,13 +75,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     // Función para aplicar filtros en el PokedexFragment
-    fun applyFilter(filterType: FilterType, type: String? = null) {
+    fun applyFilter(filterType: FilterType, type: String? = null, generation: String? = null) {
         val pokedexFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer) as? PokedexFragment
-        pokedexFragment?.applyFilter(filterType, type)
-    }
-
-    fun loadAllPokemon(onComplete: (() -> Unit)? = null) {
-        val pokedexFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer) as? PokedexFragment
-        pokedexFragment?.loadPokemonList(resetList = true, onComplete = onComplete)
+        pokedexFragment?.applyFilter(filterType, type, generation)
     }
 }

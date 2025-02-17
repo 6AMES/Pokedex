@@ -24,8 +24,7 @@ class PokedexFragment : Fragment() {
     private val pageSize = 25
     private var isLoading = false
     private var firstLoad = true
-    private var isTypeFilterActive = false
-    private var selectedType: String? = null
+    val generation = getGenerationFromPokemonId(id)
 
     // Firebase
     private val db = FirebaseFirestore.getInstance()
@@ -112,6 +111,7 @@ class PokedexFragment : Fragment() {
                         id = id,
                         name = pokemonDetail.name,
                         types = pokemonDetail.types.map { it.type.name },
+                        generation = generation,
                         imageUrl = imageUrl,
                         isFavorite = favorites.contains(id),
                         isCaptured = captured.contains(id)
@@ -154,25 +154,24 @@ class PokedexFragment : Fragment() {
     }
 
     // Aplica el filtro a la lista de Pokémon
-    fun applyFilter(filterType: FilterType, type: String? = null) {
+    fun applyFilter(filterType: FilterType, type: String? = null, generation: String? = null) {
         currentFilter = filterType
         var effectiveType = type
+        var effectiveGeneration = generation
         if (filterType == FilterType.TYPE) {
-            // Si no se recibe un tipo, usamos el que ya se guardó previamente
-            if (effectiveType == null) {
-                effectiveType = selectedType
-            } else {
-                selectedType = effectiveType
-            }
+            effectiveType = type
+        } else if (filterType == FilterType.GENERATION) {
+            effectiveGeneration = generation
         }
-        Log.d("PokedexFragment", "Aplicando filtro: $filterType con tipo: $effectiveType")
+        Log.d("PokedexFragment", "Aplicando filtro: $filterType con tipo: $effectiveType y generación: $effectiveGeneration")
         filteredList.clear()
         filteredList.addAll(
             when (filterType) {
-                FilterType.ALL -> pokemonList // Usa la lista completa de Pokémon
+                FilterType.ALL -> pokemonList
                 FilterType.FAVORITES -> pokemonList.filter { it.isFavorite }
                 FilterType.CAPTURED -> pokemonList.filter { it.isCaptured }
                 FilterType.TYPE -> pokemonList.filter { effectiveType != null && it.types.any { t -> t.lowercase() == effectiveType.lowercase() } }
+                FilterType.GENERATION -> pokemonList.filter { effectiveGeneration != null && it.generation == effectiveGeneration }
                 else -> listOf()
             }
         )
@@ -220,6 +219,7 @@ class PokedexFragment : Fragment() {
                 id = response.id,
                 name = response.name,
                 types = response.types.map { it.type.name },
+                generation = generation,
                 imageUrl = imageUrl, // Asegúrate de que no sea nulo
                 isFavorite = favorites.contains(id),
                 isCaptured = captured.contains(id)
@@ -234,5 +234,19 @@ class PokedexFragment : Fragment() {
         // Suponiendo que tienes un ProgressBar en tu layout
         val progressBar = view?.findViewById<ProgressBar>(R.id.progressBar)
         progressBar?.visibility = if (show) View.VISIBLE else View.GONE
+    }
+
+    private fun getGenerationFromPokemonId(id: Int): String {
+        return when (id) {
+            in 1..151 -> "generation-i"
+            in 152..251 -> "generation-ii"
+            in 252..386 -> "generation-iii"
+            in 387..493 -> "generation-iv"
+            in 494..649 -> "generation-v"
+            in 650..721 -> "generation-vi"
+            in 722..809 -> "generation-vii"
+            in 810..905 -> "generation-viii"
+            else -> "generation-ix"
+        }
     }
 }

@@ -16,6 +16,6 @@ interface PokeApiService {
     @GET("type")
     suspend fun getPokemonTypes(): PokemonTypeResponse
 
-    @GET("type/{type}")
-    suspend fun getPokemonByType(@Path("type") type: String): PokemonByTypeResponse // Usa PokemonByTypeResponse
+    @GET("generation")
+    suspend fun getPokemonGenerations(): PokemonGenerationResponse
 }
