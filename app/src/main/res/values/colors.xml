@@ -28,36 +28,4 @@
     <color name="type_steel">#B8B8D0</color>
     <color name="type_fairy">#EE99AC</color>
     <color name="type_normal">#BFB97F</color>
-
-    <!-- Colores para los juegos -->
-    <color name="game_red">#FF0000</color>
-    <color name="game_blue">#0000FF</color>
-    <color name="game_yellow">#FFFF00</color>
-    <color name="game_gold">#FFD700</color>
-    <color name="game_silver">#C0C0C0</color>
-    <color name="game_crystal">#40E0D0</color>
-    <color name="game_ruby">#E0115F</color>
-    <color name="game_sapphire">#0F52BA</color>
-    <color name="game_emerald">#50C878</color>
-    <color name="game_firered">#FF4500</color>
-    <color name="game_leafgreen">#32CD32</color>
-    <color name="game_diamond">#B9F2FF</color>
-    <color name="game_pearl">#FFDAB9</color>
-    <color name="game_platinum">#E5E4E2</color>
-    <color name="game_heartgold">#DAA520</color>
-    <color name="game_soulsilver">#C0C0C0</color>
-    <color name="game_black">#000000</color>
-    <color name="game_white">#FFFFFF</color>
-    <color name="game_x">#007FFF</color>
-    <color name="game_y">#FF007F</color>
-    <color name="game_omega_ruby">#E0115F</color>
-    <color name="game_alpha_sapphire">#0F52BA</color>
-    <color name="game_sun">#FFA500</color>
-    <color name="game_moon">#4682B4</color>
-    <color name="game_ultra_sun">#FF8C00</color>
-    <color name="game_ultra_moon">#483D8B</color>
-    <color name="game_sword">#00BFFF</color>
-    <color name="game_shield">#FF4500</color>
-    <color name="game_scarlet">#DC143C</color>
-    <color name="game_violet">#8A2BE2</color>
 </resources>

@@ -70,27 +70,6 @@
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/gameButton"
-            android:layout_width="150dp"
-            android:layout_height="45dp"
-            android:layout_weight="1"
-            android:backgroundTint="@color/light_gray"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:padding="10dp"
-            android:text="TODOS LOS JUEGOS"
-            android:textColor="@color/white"
-            android:textSize="12dp"
-            app:cornerRadius="8dp" />
-
-        <View
-            android:layout_width="1dp"
-            android:layout_height="fill_parent"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:background="@color/icon_gray" />
-
-        <Button
             android:id="@+id/generationButton"
             android:layout_width="100dp"
             android:layout_height="45dp"

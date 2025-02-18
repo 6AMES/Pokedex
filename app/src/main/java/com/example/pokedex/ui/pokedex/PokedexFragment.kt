@@ -1,21 +1,28 @@
 package com.example.pokedex.ui.pokedex
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.widget.ProgressBar
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.*
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.pokedex.R
 import com.example.pokedex.data.api.RetrofitInstance
 import com.example.pokedex.data.model.*
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.*
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 
 class PokedexFragment : Fragment() {
 
+    private lateinit var activityResultLauncher: ActivityResultLauncher<Intent>
     private lateinit var adapter: PokemonAdapter
     private val pokemonList = mutableListOf<Pokemon>()
     private val filteredList = mutableListOf<Pokemon>()
@@ -35,6 +42,29 @@ class PokedexFragment : Fragment() {
     private val favorites = mutableSetOf<Int>()
     private val captured = mutableSetOf<Int>()
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        // Inicializar el ActivityResultLauncher
+        activityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data = result.data
+                val updatedPokemonId = data?.getIntExtra("UPDATED_POKEMON_ID", -1)
+                val isFavorite = data?.getBooleanExtra("IS_FAVORITE", false)
+                val isCaptured = data?.getBooleanExtra("IS_CAPTURED", false)
+
+                if (updatedPokemonId != null && updatedPokemonId != -1) {
+                    val pokemonToUpdate = pokemonList.find { it.id == updatedPokemonId }
+                    pokemonToUpdate?.let {
+                        if (isFavorite != null) it.isFavorite = isFavorite
+                        if (isCaptured != null) it.isCaptured = isCaptured
+                        adapter.notifyItemChanged(pokemonList.indexOf(it))
+                    }
+                }
+            }
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -42,9 +72,10 @@ class PokedexFragment : Fragment() {
         val rootView = inflater.inflate(R.layout.fragment_pokedex, container, false)
 
         adapter = PokemonAdapter(
-            filteredList, // Usamos la lista filtrada directamente
+            filteredList,
             onFavoriteClick = { pokemon -> toggleFavorite(pokemon) },
-            onCapturedClick = { pokemon -> toggleCaptured(pokemon) }
+            onCapturedClick = { pokemon -> toggleCaptured(pokemon) },
+            activityResultLauncher = activityResultLauncher
         )
 
         return rootView
@@ -53,11 +84,41 @@ class PokedexFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Configurar el ActivityResultLauncher
+        activityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data = result.data
+                val updatedPokemonId = data?.getIntExtra("UPDATED_POKEMON_ID", -1)
+                val isFavorite = data?.getBooleanExtra("IS_FAVORITE", false)
+                val isCaptured = data?.getBooleanExtra("IS_CAPTURED", false)
+
+                if (updatedPokemonId != null && updatedPokemonId != -1) {
+                    // Actualizar el Pokémon en la lista
+                    val pokemonToUpdate = pokemonList.find { it.id == updatedPokemonId }
+                    pokemonToUpdate?.let {
+                        if (isFavorite != null) it.isFavorite = isFavorite
+                        if (isCaptured != null) it.isCaptured = isCaptured
+
+                        // Notificar al adaptador que los datos han cambiado
+                        adapter.notifyItemChanged(pokemonList.indexOf(it))
+                    }
+                }
+            }
+        }
+
+        // Configurar el RecyclerView y el adaptador aquí
         val recyclerView: RecyclerView = view.findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+        adapter = PokemonAdapter(
+            filteredList, // Usamos la lista filtrada directamente
+            onFavoriteClick = { pokemon -> toggleFavorite(pokemon) },
+            onCapturedClick = { pokemon -> toggleCaptured(pokemon) },
+            activityResultLauncher = activityResultLauncher // Pasar el ActivityResultLauncher
+        )
         recyclerView.adapter = adapter
 
-        // Cargamos los favoritos y capturados primero, luego los Pokémon
+        // Cargar los favoritos y capturados primero, luego los Pokémon
         loadFavoritesAndCaptured {
             // Ahora cargamos los Pokémon sin esperar al scroll
             loadPokemonList()
@@ -106,25 +167,41 @@ class PokedexFragment : Fragment() {
                     val id = pokemonApi.url.split("/").filter { it.isNotEmpty() }.last().toInt()
                     Log.d("PokedexFragment", "Cargando detalles del Pokémon con ID: $id")
 
+                    // Obtener detalles del Pokémon desde la PokeAPI
                     val pokemonDetail = RetrofitInstance.api.getPokemonDetail(id)
                     val imageUrl = pokemonDetail.sprites.front_default ?: "https://example.com/default-image.png"
+
+                    // Extraer peso y altura
+                    val weight = pokemonDetail.weight
+                    val height = pokemonDetail.height
+
+                    // Extraer estadísticas
+                    val stats = pokemonDetail.stats.associate { stat: PokemonStat ->
+                        stat.stat.name to stat.base_stat
+                    }
+
+                    // Extraer tipos
+                    val types = pokemonDetail.types.map { type: PokemonType ->
+                        type.type.name
+                    }
 
                     // Calcular la generación para este Pokémon específico
                     val generation = getGenerationFromPokemonId(id)
 
-                    // Obtener el primer juego en el que aparece el Pokémon (puedes ajustar esta lógica según tus necesidades)
-                    val game = getGameFromPokemonId(id)
-
+                    // Crear el objeto Pokémon
                     val pokemon = Pokemon(
                         id = id,
                         name = pokemonDetail.name,
-                        types = pokemonDetail.types.map { it.type.name },
+                        types = types,
                         generation = generation,
-                        game = game, // Asignar el juego aquí
                         imageUrl = imageUrl,
                         isFavorite = favorites.contains(id),
-                        isCaptured = captured.contains(id)
+                        isCaptured = captured.contains(id),
+                        weight = weight, // Añadir peso
+                        height = height, // Añadir altura
+                        stats = stats // Añadir estadísticas
                     )
+
                     newPokemonList.add(pokemon)
                 }
 
@@ -163,53 +240,64 @@ class PokedexFragment : Fragment() {
     }
 
     // Aplica el filtro a la lista de Pokémon
-    fun applyFilter(filterType: FilterType, type: String? = null, generation: String? = null, game: String? = null) {
-        // Actualizar el filtro actual
+    fun applyFilter(
+        filterType: FilterType,
+        type: String? = null,
+        generation: String? = null
+    ) {
+        // Actualizamos el filtro global (por ejemplo, para favoritos o capturados)
         currentFilter = filterType
 
-        // Actualizar el tipo seleccionado (si se proporciona)
-        if (type != null) {
-            selectedType = if (type == "all") null else type
+        when (filterType) {
+            // Si se selecciona ALL, queremos reiniciar ambos filtros,
+            // salvo que se provea un valor explícito para alguno.
+            FilterType.ALL -> {
+                // Si no se provee ningún parámetro, reiniciamos ambos.
+                if (type == null && generation == null) {
+                    selectedType = null
+                    selectedGeneration = null
+                } else {
+                    // Si se ha proporcionado alguno, actualizamos ese filtro.
+                    type?.let { selectedType = if (it.lowercase() == "all") null else it }
+                    generation?.let { selectedGeneration = if (it.lowercase() == "all") null else it }
+                }
+            }
+            // Si se está actualizando solo el filtro de tipo...
+            FilterType.TYPE -> {
+                type?.let { selectedType = if (it.lowercase() == "all") null else it }
+                // Dejamos selectedGeneration sin modificar.
+            }
+            // Si se actualiza solo el filtro de generación...
+            FilterType.GENERATION -> {
+                generation?.let { selectedGeneration = if (it.lowercase() == "all") null else it }
+                // Dejamos selectedType sin modificar.
+            }
+            // Para otros filtros (como FAVORITES o CAPTURED) no modificamos tipo/generación.
+            else -> {
+                // Aquí podrías decidir si forzar o no actualizar según se requiera.
+            }
         }
 
-        // Actualizar la generación seleccionada (si se proporciona)
-        if (generation != null) {
-            selectedGeneration = if (generation == "all") null else generation
-        }
-
-        // Actualizar el juego seleccionado (si se proporciona)
-        if (game != null) {
-            selectedGame = if (game == "all") null else game
-        }
-
-        Log.d("PokedexFragment", "Aplicando filtro: $filterType con tipo: $selectedType, generación: $selectedGeneration y juego: $selectedGame")
+        Log.d(
+            "PokedexFragment",
+            "Aplicando filtro: $filterType con tipo: $selectedType y generación: $selectedGeneration"
+        )
         filteredList.clear()
 
-        // Almacenar los valores actuales en variables locales
+        // Guardamos en variables locales para la filtración.
         val currentType = selectedType
         val currentGeneration = selectedGeneration
-        val currentGame = selectedGame
 
-        // Aplicar los filtros
         filteredList.addAll(
             pokemonList.filter { pokemon ->
-                // Filtro por tipo (si hay un tipo seleccionado)
-                val matchesType = currentType == null || pokemon.types.any { it.lowercase() == currentType.lowercase() }
-
-                // Filtro por generación (si hay una generación seleccionada)
-                val matchesGeneration = currentGeneration == null || pokemon.generation == currentGeneration
-
-                // Filtro por juego (si hay un juego seleccionado)
-                val matchesGame = currentGame == null || pokemon.game == currentGame
-
-                // Filtro por favoritos (si el filtro activo es FAVORITES)
+                val matchesType = currentType == null ||
+                        pokemon.types.any { it.lowercase() == currentType.lowercase() }
+                val matchesGeneration = currentGeneration == null ||
+                        pokemon.generation == currentGeneration
                 val matchesFavorites = currentFilter != FilterType.FAVORITES || pokemon.isFavorite
-
-                // Filtro por capturados (si el filtro activo es CAPTURED)
                 val matchesCaptured = currentFilter != FilterType.CAPTURED || pokemon.isCaptured
 
-                // Aplicar todos los filtros
-                matchesType && matchesGeneration && matchesGame && matchesFavorites && matchesCaptured
+                matchesType && matchesGeneration && matchesFavorites && matchesCaptured
             }
         )
 
@@ -267,20 +355,4 @@ class PokedexFragment : Fragment() {
             else -> "generation-ix"
         }
     }
-
-    private fun getGameFromPokemonId(id: Int): String {
-        return when (id) {
-            in 1..151 -> listOf("red", "blue", "yellow").random() // Primera generación
-            in 152..251 -> listOf("gold", "silver", "crystal").random() // Segunda generación
-            in 252..386 -> listOf("ruby", "sapphire", "emerald").random() // Tercera generación
-            in 387..493 -> listOf("diamond", "pearl", "platinum").random() // Cuarta generación
-            in 494..649 -> listOf("black", "white").random() // Quinta generación
-            in 650..721 -> listOf("x", "y").random() // Sexta generación
-            in 722..809 -> listOf("sun", "moon", "ultra_sun", "ultra_moon").random() // Séptima generación
-            in 810..905 -> listOf("sword", "shield").random() // Octava generación
-            in 906..1025 -> listOf("scarlet", "violet").random() // Novena generación
-            else -> "unknown" // Para Pokémon fuera de los rangos conocidos
-        }
-    }
-
 }

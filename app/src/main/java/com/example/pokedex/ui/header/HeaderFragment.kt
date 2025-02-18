@@ -84,16 +84,10 @@ class HeaderFragment : Fragment() {
             showTypeFilterBottomSheet()
         }
 
-        // Configura el botón de filtro por generación
+        // CONFIGURA EL BOTÓN DE FILTRO POR GENERACIÓN
         val generationButton = view.findViewById<Button>(R.id.generationButton)
         generationButton.setOnClickListener {
             showGenerationFilterBottomSheet()
-        }
-
-        // Configura el botón de filtro por juego
-        val gameButton = view.findViewById<Button>(R.id.gameButton)
-        gameButton.setOnClickListener {
-            showGameFilterBottomSheet()
         }
 
         return view
@@ -232,7 +226,7 @@ class HeaderFragment : Fragment() {
                 val generationButton = requireView().findViewById<Button>(R.id.generationButton)
                 generationButton.text = if (selectedGeneration == "all") "TODAS LAS GENERACIONES" else selectedGeneration.uppercase()
 
-                // *** NUEVO: Si se selecciona "all" en generación, también actualizamos el botón de tipos
+                // Si se selecciona "all" en generación, también actualizamos el botón de tipos
                 if (selectedGeneration == "all") {
                     val typeButton = requireView().findViewById<Button>(R.id.typeButton)
                     typeButton.text = "TODOS LOS TIPOS"
@@ -255,55 +249,6 @@ class HeaderFragment : Fragment() {
             response.results.map { it.name } // Obtén los nombres de las generaciones
         } catch (e: Exception) {
             Log.e("HeaderFragment", "Error al cargar las generaciones de Pokémon: ${e.message}", e)
-            emptyList()
-        }
-    }
-
-    private fun showGameFilterBottomSheet() {
-        val bottomSheetDialog = BottomSheetDialog(requireContext())
-        val bottomSheetView = layoutInflater.inflate(R.layout.bottom_sheet_type_filter, null)
-        bottomSheetDialog.setContentView(bottomSheetView)
-        bottomSheetDialog.show()
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            // Carga los juegos desde la API
-            val apiGames = loadPokemonGames()
-
-            // Agrega "all" al principio para representar TODOS LOS JUEGOS
-            val games = listOf("all") + apiGames
-            Log.d("HeaderFragment", "Juegos cargados: $games")
-
-            val gameAdapter = GameAdapter(games) { selectedGame ->
-                val mainActivity = activity as MainActivity
-
-                if (selectedGame == "all") {
-                    // Si se selecciona "Todos los juegos", aplica el filtro ALL
-                    mainActivity.applyFilter(FilterType.ALL)
-                } else {
-                    // Si se selecciona un juego específico, aplica el filtro GAME
-                    mainActivity.applyFilter(FilterType.GAME, game = selectedGame)
-                }
-
-                // Actualizamos el botón de filtro (gameButton)
-                val gameButton = requireView().findViewById<Button>(R.id.gameButton)
-                gameButton.text = if (selectedGame == "all") "TODOS LOS JUEGOS" else selectedGame
-
-                // Cerramos el BottomSheet
-                bottomSheetDialog.dismiss()
-            }
-
-            val recyclerView = bottomSheetView.findViewById<RecyclerView>(R.id.typeRecyclerView)
-            recyclerView.layoutManager = LinearLayoutManager(requireContext())
-            recyclerView.adapter = gameAdapter
-        }
-    }
-
-    private suspend fun loadPokemonGames(): List<String> {
-        return try {
-            val response = RetrofitInstance.api.getVersionDetail(id)
-            response.results.map { it.name } // Obtén los nombres de los juegos
-        } catch (e: Exception) {
-            Log.e("HeaderFragment", "Error al cargar los juegos de Pokémon: ${e.message}", e)
             emptyList()
         }
     }

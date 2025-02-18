@@ -18,7 +18,4 @@ interface PokeApiService {
 
     @GET("generation")
     suspend fun getPokemonGenerations(): PokemonGenerationResponse
-
-    @GET("version/{id}")
-    suspend fun getVersionDetail(@Path("id") id: Int): VersionDetailResponse
 }

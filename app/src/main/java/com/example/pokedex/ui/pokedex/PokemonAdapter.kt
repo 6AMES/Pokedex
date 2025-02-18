@@ -1,19 +1,23 @@
 package com.example.pokedex.ui.pokedex
 
+import android.content.Intent
 import android.graphics.drawable.GradientDrawable
 import android.view.*
 import android.widget.*
+import androidx.activity.result.ActivityResultLauncher
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.pokedex.R
 import com.example.pokedex.data.model.Pokemon
+import com.example.pokedex.ui.detail.PokemonDetailActivity
 import java.util.Locale
 
 class PokemonAdapter(
     private var pokemonList: MutableList<Pokemon>,
     private val onFavoriteClick: (Pokemon) -> Unit,
-    private val onCapturedClick: (Pokemon) -> Unit
+    private val onCapturedClick: (Pokemon) -> Unit,
+    private val activityResultLauncher: ActivityResultLauncher<Intent>
 ) : RecyclerView.Adapter<PokemonAdapter.PokemonViewHolder>() {
 
     inner class PokemonViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -101,6 +105,13 @@ class PokemonAdapter(
 
             favoriteButton.setOnClickListener { onFavoriteClick(pokemon) }
             capturedButton.setOnClickListener { onCapturedClick(pokemon) }
+
+            // Agregar listener para el clic en el item
+            itemView.setOnClickListener {
+                val intent = Intent(itemView.context, PokemonDetailActivity::class.java)
+                intent.putExtra("POKEMON_EXTRA", pokemon)
+                activityResultLauncher.launch(intent)
+            }
         }
     }
 

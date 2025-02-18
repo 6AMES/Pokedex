@@ -31,6 +31,12 @@
         <activity
             android:name=".ui.main.MainActivity"
             android:exported="true" />
+
+        <!-- Declara PokemonDetailActivity -->
+        <activity
+            android:name=".ui.detail.PokemonDetailActivity"
+            android:exported="true"
+            />
     </application>
 
 </manifest>

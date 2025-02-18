@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/dark_gray">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Nombre del Pokémon -->
+        <TextView
+            android:id="@+id/pokemonName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:paddingBottom="8dp"
+            android:text="Pokémon Name"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <!-- Imagen del Pokémon -->
+        <ImageView
+            android:id="@+id/pokemonImage"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_gravity="center_horizontal"
+            android:contentDescription="@string/pokemon_image"
+            android:paddingBottom="16dp"
+            tools:srcCompat="@tools:sample/avatars" />
+
+        <!-- Tipos del Pokémon -->
+        <TextView
+            android:id="@+id/pokemonTypes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:paddingBottom="8dp"
+            android:text="Types: "
+            android:textSize="16sp" />
+
+        <!-- Generación del Pokémon -->
+        <TextView
+            android:id="@+id/pokemonGeneration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:paddingBottom="8dp"
+            android:text="Generation: "
+            android:textSize="16sp" />
+
+        <!-- ID del Pokémon -->
+        <TextView
+            android:id="@+id/pokemonId"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:paddingBottom="8dp"
+            android:text="ID: "
+            android:textSize="16sp" />
+
+        <!-- Estadísticas del Pokémon -->
+        <TextView
+            android:id="@+id/statsTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="8dp"
+            android:text="Stats"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- HP -->
+            <TextView
+                android:id="@+id/pokemonHp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="4dp"
+                android:text="HP: "
+                android:textSize="16sp" />
+
+            <!-- Ataque -->
+            <TextView
+                android:id="@+id/pokemonAttack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="4dp"
+                android:text="Attack: "
+                android:textSize="16sp" />
+
+            <!-- Defensa -->
+            <TextView
+                android:id="@+id/pokemonDefense"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="4dp"
+                android:text="Defense: "
+                android:textSize="16sp" />
+
+            <!-- Ataque Especial -->
+            <TextView
+                android:id="@+id/pokemonSpecialAttack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="4dp"
+                android:text="Special Attack: "
+                android:textSize="16sp" />
+
+            <!-- Defensa Especial -->
+            <TextView
+                android:id="@+id/pokemonSpecialDefense"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="4dp"
+                android:text="Special Defense: "
+                android:textSize="16sp" />
+
+            <!-- Velocidad -->
+            <TextView
+                android:id="@+id/pokemonSpeed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="8dp"
+                android:text="Speed: "
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <!-- Peso -->
+        <TextView
+            android:id="@+id/pokemonWeight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="8dp"
+            android:text="Weight: "
+            android:textSize="16sp" />
+
+        <!-- Altura -->
+        <TextView
+            android:id="@+id/pokemonHeight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="8dp"
+            android:text="Height: "
+            android:textSize="16sp" />
+
+        <!-- Favorito -->
+        <CheckBox
+            android:id="@+id/pokemonFavorite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="8dp"
+            android:text="Favorite" />
+
+        <!-- Capturado -->
+        <CheckBox
+            android:id="@+id/pokemonCaptured"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="8dp"
+            android:text="Captured" />
+
+    </LinearLayout>
+</ScrollView>
