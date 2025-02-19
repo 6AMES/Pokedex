@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import com.example.pokedex.R
 import com.example.pokedex.ui.main.MainActivity
 import com.example.pokedex.databinding.ActivityRegisterBinding
 import com.google.firebase.auth.FirebaseAuth
@@ -17,6 +19,9 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        window.statusBarColor = ContextCompat.getColor(this, R.color.dark_gray)
+
         super.onCreate(savedInstanceState)
 
         // Configurar View Binding

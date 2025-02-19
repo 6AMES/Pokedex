@@ -43,6 +43,7 @@ class PokedexFragment : Fragment() {
     private val captured = mutableSetOf<Int>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
 
         // Inicializar el ActivityResultLauncher

@@ -20,12 +20,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navigationView: NavigationView
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        window.statusBarColor = ContextCompat.getColor(this, R.color.dark_gray)
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
-
-        // Cambiar color barra de notificaciones del móvil
-        window.statusBarColor = ContextCompat.getColor(this, R.color.transparent)
 
         // Inicializa las vistas
         drawerLayout = findViewById(R.id.drawerLayout)
