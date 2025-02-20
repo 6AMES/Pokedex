@@ -381,47 +381,47 @@ class PokemonDetailActivity : AppCompatActivity() {
                 val speciesResponse = RetrofitInstance.api.getPokemonSpecies(pokemonId)
                 Log.d("PokemonDetailActivity", "Species Response: $speciesResponse")
 
-                // Obtener la descripción de la Pokédex (en inglés)
+                // Obtener la descripción de la Pokédex (en español)
                 val pokedexDescription = speciesResponse.flavor_text_entries
                     .firstOrNull { it.language.name == "es" }?.flavor_text
                     ?.replace("\n", " ")
-                    ?: "No description available"
+                    ?: "No hay descripción disponible."
 
-                // Obtener la descripción de la especie (en inglés)
+                // Obtener la descripción de la especie (en español)
                 val speciesDescription = speciesResponse.genera
                     .firstOrNull { it.language.name == "es" }?.genus
-                    ?: "No species description available"
+                    ?: "No hay descripción de especie."
 
-                // Obtener el sonido del Pokémon (usamos el sonido más reciente)
-                val pokemonSoundUrl = speciesResponse.cries?.latest // Verificar si cries es null
+                // Ahora obtenemos los datos desde la URL correcta
+                val pokemonResponse = RetrofitInstance.api.getPokemonDetail(pokemonId)
+                val pokemonSoundUrl = pokemonResponse.cries?.latest
+
                 Log.d("PokemonDetailActivity", "Pokemon Sound URL: $pokemonSoundUrl")
 
-                // Mostrar los detalles adicionales en la UI
                 runOnUiThread {
-                    binding.pokemonDescription.text = "$pokedexDescription"
-                    binding.pokemonSpeciesDescription.text = "$speciesDescription"
+                    binding.pokemonDescription.text = pokedexDescription
+                    binding.pokemonSpeciesDescription.text = speciesDescription
 
-                    // Reproducir el sonido del Pokémon (opcional)
-                    pokemonSoundUrl?.let { soundUrl ->
+                    // Configurar el botón de sonido
+                    if (pokemonSoundUrl != null) {
                         binding.pokemonSoundButton.setOnClickListener {
-                            playPokemonSound(soundUrl)
+                            playPokemonSound(pokemonSoundUrl)
                         }
-                    } ?: run {
-                        // Si no hay sonido disponible, deshabilitar el botón o mostrar un mensaje
+                    } else {
                         binding.pokemonSoundButton.isEnabled = false
-                        binding.pokemonSoundButton.text = "No sound available"
+                        binding.pokemonSoundButton.text = "Sin sonido"
                     }
                 }
 
             } catch (e: Exception) {
                 e.printStackTrace()
-                Log.e("PokemonDetailActivity", "Error loading additional details: ${e.message}")
+                Log.e("PokemonDetailActivity", "Error cargando detalles adicionales: ${e.message}")
             }
         }
     }
 
     private fun playPokemonSound(soundUrl: String) {
-        Log.d("PokemonDetailActivity", "Attempting to play sound from URL: $soundUrl")
+        Log.d("PokemonDetailActivity", "Intentando reproducir sonido desde URL: $soundUrl")
         mediaPlayer?.release() // Liberar el MediaPlayer anterior si existe
 
         mediaPlayer = MediaPlayer().apply {
@@ -429,20 +429,14 @@ class PokemonDetailActivity : AppCompatActivity() {
                 setDataSource(soundUrl)
                 prepareAsync() // Preparar de forma asíncrona
                 setOnPreparedListener {
-                    Log.d("PokemonDetailActivity", "MediaPlayer prepared, starting playback")
+                    Log.d("PokemonDetailActivity", "MediaPlayer preparado, iniciando reproducción")
                     start() // Reproducir el sonido cuando esté listo
                 }
                 setOnCompletionListener {
-                    Log.d("PokemonDetailActivity", "Playback completed")
-                    release() // Liberar el MediaPlayer cuando termine la reproducción
-                }
-                setOnErrorListener { _, what, extra ->
-                    Log.e("PokemonDetailActivity", "MediaPlayer error: what=$what, extra=$extra")
-                    false
+                    release() // Liberar recursos después de la reproducción
                 }
             } catch (e: IOException) {
-                Log.e("PokemonDetailActivity", "Error setting up MediaPlayer: ${e.message}")
-                e.printStackTrace()
+                Log.e("PokemonDetailActivity", "Error al reproducir sonido: ${e.message}")
             }
         }
     }

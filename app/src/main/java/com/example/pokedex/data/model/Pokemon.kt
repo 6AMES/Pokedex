@@ -2,6 +2,7 @@ package com.example.pokedex.data.model
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.google.gson.annotations.SerializedName
 
 // Modelo principal: Pokémon
 data class Pokemon(
@@ -95,7 +96,8 @@ data class PokemonDetailResponse(
     val sprites: PokemonSprites,
     val stats: List<PokemonStat>,
     val weight: Int,
-    val height: Int
+    val height: Int,
+    @SerializedName("cries") val cries: Cries?
 )
 
 // Modelo para la respuesta de especie de Pokémon
@@ -103,7 +105,6 @@ data class PokemonSpeciesResponse(
     val evolution_chain: EvolutionChainUrl,
     val flavor_text_entries: List<FlavorTextEntry>, // Descripciones de la Pokédex
     val genera: List<Genus>, // Descripción de la especie (como "Semilla Pokémon")
-    val cries: Cries // Sonido del Pokémon
 )
 
 data class EvolutionChainUrl(
