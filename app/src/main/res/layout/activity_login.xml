@@ -1,56 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/dark_gray"
+    android:gravity="center"
     android:orientation="vertical"
     android:padding="16dp"
-    android:gravity="center"
     tools:context=".auth.LoginActivity">
 
     <!-- Título -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
         android:text="Iniciar Sesión"
+        android:textColor="@color/white"
+        android:textColorHighlight="@color/white"
+        android:textColorHint="@color/white"
+        android:textColorLink="@color/white"
         android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="24dp"/>
+        android:textStyle="bold" />
 
     <!-- Campo de correo electrónico -->
     <EditText
         android:id="@+id/emailEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
         android:hint="Correo electrónico"
         android:inputType="textEmailAddress"
-        android:layout_marginBottom="16dp"/>
+        android:textColor="@color/white"
+        android:textColorHighlight="@color/white"
+        android:textColorHint="@color/white"
+        android:textColorLink="@color/white" />
 
     <!-- Campo de contraseña -->
     <EditText
         android:id="@+id/passwordEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
         android:hint="Contraseña"
         android:inputType="textPassword"
-        android:layout_marginBottom="24dp"/>
+        android:textColor="@color/white"
+        android:textColorHighlight="@color/white"
+        android:textColorHint="@color/white"
+        android:textColorLink="@color/white" />
 
     <!-- Botón de inicio de sesión -->
     <Button
         android:id="@+id/loginButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
+        android:layout_marginTop="16dp"
+        android:backgroundTint="@color/type_fighting"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:padding="4dp"
         android:text="Iniciar Sesión"
-        android:backgroundTint="#FF6750a4"
         android:textColor="@color/white"
-        android:layout_marginBottom="16dp"/>
+        android:textSize="14sp"
+        app:cornerRadius="8dp" />
 
     <!-- Enlace para ir a la pantalla de registro -->
     <TextView
         android:id="@+id/registerTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:text="¿No tienes una cuenta? Regístrate"
-        android:textColor="#FF6750a4" />
+        android:textColor="@color/light_gray" />
 
 </LinearLayout>

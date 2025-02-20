@@ -1,10 +1,10 @@
 package com.example.pokedex.data.model
 
 data class PokemonTypeResponse(
-    val results: List<PokemonTypeApi> // Cambia "PokemonType" a "PokemonTypeApi"
+    val results: List<PokemonTypeApi>
 )
 
-data class PokemonTypeApi( // Renombra la clase
+data class PokemonTypeApi(
     val name: String,
     val url: String
 )

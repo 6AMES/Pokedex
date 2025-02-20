@@ -6,8 +6,8 @@ import retrofit2.http.*
 interface PokeApiService {
     @GET("pokemon")
     suspend fun getPokemonList(
-        @Query("limit") limit: Int, // Número de Pokémon por página
-        @Query("offset") offset: Int // Desplazamiento para la paginación
+        @Query("limit") limit: Int,
+        @Query("offset") offset: Int
     ): PokemonResponse
 
     @GET("pokemon/{id}")

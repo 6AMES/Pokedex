@@ -41,12 +41,72 @@ class PokemonDetailActivity : AppCompatActivity() {
         binding = ActivityPokemonDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Obtener el Pokémon pasado desde el intent
+        // Intent puede contener un Pokémon completo o solo el ID
         val pokemon = intent.getParcelableExtra<Pokemon>("POKEMON_EXTRA")
+        val pokemonId = intent.getIntExtra("POKEMON_ID", -1)
+
         if (pokemon != null) {
+            // Si se recibe un objeto Pokémon, mostrarlo directamente
             displayPokemonDetails(pokemon)
             setupFavoriteButton(pokemon)
             setupCapturedButton(pokemon)
+        } else if (pokemonId != -1) {
+            lifecycleScope.launch {
+                try {
+                    val pokemonDetail = RetrofitInstance.api.getPokemonDetail(pokemonId)
+
+                    // Verificar datos en Logcat
+                    Log.d("PokemonDetailActivity", "PokemonDetailResponse: $pokemonDetail")
+
+                    // Convertir PokemonDetailResponse a Pokemon
+                    val newPokemon = Pokemon(
+                        id = pokemonDetail.id,
+                        name = pokemonDetail.name.capitalize(),
+                        types = pokemonDetail.types.map { it.type.name.capitalize() },
+                        generation = "Desconocida",
+                        imageUrl = pokemonDetail.sprites.front_default
+                            ?: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemonDetail.id}.png",
+                        weight = pokemonDetail.weight ?: 0,
+                        height = pokemonDetail.height ?: 0,
+                        stats = pokemonDetail.stats.associate { it.stat.name to it.base_stat }
+                    )
+
+                    // Consultar Firebase para obtener el estado de favoritos y capturados
+                    val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+                    val userRef = FirebaseFirestore.getInstance().collection("users").document(userId)
+                    userRef.get().addOnSuccessListener { document ->
+                        if (document.exists()) {
+                            // Convertir la lista de favoritos y capturados de Long a Int
+                            val favorites = (document.get("favorites") as? List<*>)?.mapNotNull { (it as? Long)?.toInt() } ?: emptyList()
+                            val captured = (document.get("captured") as? List<*>)?.mapNotNull { (it as? Long)?.toInt() } ?: emptyList()
+                            val updatedPokemon = newPokemon.copy(
+                                isFavorite = favorites.contains(pokemonId),
+                                isCaptured = captured.contains(pokemonId)
+                            )
+                            runOnUiThread {
+                                displayPokemonDetails(updatedPokemon)
+                                setupFavoriteButton(updatedPokemon)
+                                setupCapturedButton(updatedPokemon)
+                            }
+                        } else {
+                            runOnUiThread {
+                                displayPokemonDetails(newPokemon)
+                                setupFavoriteButton(newPokemon)
+                                setupCapturedButton(newPokemon)
+                            }
+                        }
+                    }.addOnFailureListener {
+                        runOnUiThread {
+                            displayPokemonDetails(newPokemon)
+                            setupFavoriteButton(newPokemon)
+                            setupCapturedButton(newPokemon)
+                        }
+                    }
+
+                } catch (e: Exception) {
+                    Log.e("PokemonDetailActivity", "Error al obtener detalles del Pokémon: ${e.message}")
+                }
+            }
         }
     }
 
@@ -125,15 +185,6 @@ class PokemonDetailActivity : AppCompatActivity() {
             binding.type2TextView.visibility = View.GONE
         }
 
-        // Asignar la generación del Pokémon
-        binding.pokemonGeneration.text = "${pokemon.generation}".uppercase()
-        val genColor = GradientDrawable().apply {
-            setColor(ContextCompat.getColor(context, R.color.light_gray))
-            setCornerRadius(16f)
-            setStroke(4, ContextCompat.getColor(context, R.color.light_gray))
-        }
-        binding.pokemonGeneration.background = genColor
-
         // Convertir el peso de hectogramos a kilogramos
         val weightInKg = pokemon.weight?.div(10.0) ?: 0
         binding.pokemonWeight.text = "${weightInKg} Kg"
@@ -141,14 +192,6 @@ class PokemonDetailActivity : AppCompatActivity() {
         // Convertir la altura de decímetros a metros
         val heightInMeters = pokemon.height?.div(10.0) ?: 0
         binding.pokemonHeight.text = "${heightInMeters} m"
-
-        fun darkenColor(color: Int, factor: Float): Int {
-            val red = Math.max(0, (Color.red(color) * factor).toInt())
-            val green = Math.max(0, (Color.green(color) * factor).toInt())
-            val blue = Math.max(0, (Color.blue(color) * factor).toInt())
-
-            return Color.rgb(red, green, blue)
-        }
 
         val drawable = GradientDrawable()
         drawable.shape = GradientDrawable.RECTANGLE
@@ -161,10 +204,10 @@ class PokemonDetailActivity : AppCompatActivity() {
 
         // Definir el corner radius solo en las esquinas superiores e inferiores de la izquierda
         drawable.cornerRadii = floatArrayOf(
-            16f, 16f,  // Arriba izquierda
-            0f, 0f,    // Arriba derecha
-            0f, 0f,  // Abajo derecha
-            16f, 16f     // Abajo izquierda
+            16f, 16f, // Arriba izquierda
+            0f, 0f, // Arriba derecha
+            0f, 0f, // Abajo derecha
+            16f, 16f // Abajo izquierda
         )
 
         // Asignar el drawable al fondo del TextView
@@ -340,9 +383,43 @@ class PokemonDetailActivity : AppCompatActivity() {
                     currentEvolution = currentEvolution.evolves_to.firstOrNull() // Tomar solo la primera evolución
                 }
 
-                // Mostrar los nombres de las evoluciones
                 runOnUiThread {
-                    binding.pokemonEvolutions.text = "${evolutionList.joinToString(" → ").capitalize()}"
+                    // Verifica cuántas evoluciones hay en la lista y asigna cada una a un TextView
+                    binding.pokemonEvolutions1.text = evolutionList.getOrNull(0)?.capitalize() ?: ""
+                    binding.pokemonEvolutions2.text = evolutionList.getOrNull(1)?.capitalize() ?: ""
+                    binding.pokemonEvolutions3.text = evolutionList.getOrNull(2)?.capitalize() ?: ""
+
+                    // Ocultar los TextView de evoluciones si no hay suficientes
+                    if (evolutionList.size < 3) {
+                        binding.pokemonEvolutions3.visibility = View.GONE // Ocultar la tercera evolución si no existe
+                    } else {
+                        binding.pokemonEvolutions3.visibility = View.VISIBLE // Mostrar si existe
+                    }
+
+                    if (evolutionList.size < 2) {
+                        binding.pokemonEvolutions2.visibility = View.GONE // Ocultar la segunda evolución si no existe
+                    } else {
+                        binding.pokemonEvolutions2.visibility = View.VISIBLE // Mostrar si existe
+                    }
+                }
+
+                runOnUiThread {
+                    val evolutionCards = listOf(
+                        binding.evolutionCard1 to evolutionList.getOrNull(0),
+                        binding.evolutionCard2 to evolutionList.getOrNull(1),
+                        binding.evolutionCard3 to evolutionList.getOrNull(2)
+                    )
+
+                    for ((cardView, evolutionName) in evolutionCards) {
+                        if (evolutionName != null) {
+                            cardView.visibility = View.VISIBLE // Asegurar que el CardView sea visible
+                            cardView.setOnClickListener {
+                                navigateToPokemonDetail(evolutionName)
+                            }
+                        } else {
+                            cardView.visibility = View.GONE // Ocultar si no hay evolución
+                        }
+                    }
                 }
 
                 // Cargar imágenes de las evoluciones
@@ -457,5 +534,21 @@ class PokemonDetailActivity : AppCompatActivity() {
             width
         }
         textView.layoutParams = layoutParams
+    }
+
+    private fun navigateToPokemonDetail(pokemonName: String) {
+        lifecycleScope.launch {
+            try {
+                val pokemonDetail = RetrofitInstance.api.getPokemonDetail(pokemonName)
+                val pokemonId = pokemonDetail.id
+
+                val intent = Intent(this@PokemonDetailActivity, PokemonDetailActivity::class.java)
+                intent.putExtra("POKEMON_ID", pokemonId) // Pasamos el ID
+                startActivity(intent)
+
+            } catch (e: Exception) {
+                Log.e("PokemonDetailActivity", "Error al obtener datos de $pokemonName: ${e.message}")
+            }
+        }
     }
 }

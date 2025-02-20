@@ -1,7 +1,6 @@
 package com.example.pokedex.ui.header
 
 import android.content.res.ColorStateList
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -44,7 +43,7 @@ class HeaderFragment : Fragment() {
             if (currentFilter == FilterType.FAVORITES) {
                 // Si el filtro activo es FAVORITES, muestra todos los Pokémon
                 (activity as MainActivity).applyFilter(FilterType.ALL)
-                currentFilter = FilterType.ALL  // Restablece el filtro a "todos"
+                currentFilter = FilterType.ALL
                 favoriteButton.imageTintList = defaultTint
             } else {
                 // Aplica el filtro FAVORITES
@@ -64,7 +63,7 @@ class HeaderFragment : Fragment() {
             if (currentFilter == FilterType.CAPTURED) {
                 // Si el filtro activo es CAPTURED, muestra todos los Pokémon
                 (activity as MainActivity).applyFilter(FilterType.ALL)
-                currentFilter = FilterType.ALL  // Restablece el filtro a "todos"
+                currentFilter = FilterType.ALL
                 capturedButton.imageTintList = defaultTint
             } else {
                 // Aplica el filtro CAPTURED
@@ -109,7 +108,6 @@ class HeaderFragment : Fragment() {
         capturedButton.imageTintList = defaultTint
     }
 
-    // Dentro de showTypeFilterBottomSheet()
     private fun showTypeFilterBottomSheet() {
         val bottomSheetDialog = BottomSheetDialog(requireContext())
         val bottomSheetView = layoutInflater.inflate(R.layout.bottom_sheet_type_filter, null)
@@ -143,7 +141,7 @@ class HeaderFragment : Fragment() {
                     typeButton.text = "TODOS LOS TIPOS"
                     val defaultColor = ContextCompat.getColor(requireContext(), R.color.light_gray)
                     typeButton.setBackgroundColor(defaultColor)
-                    // *** NUEVO: Actualizamos el botón de generación a "TODAS LAS GENERACIONES"
+                    // Actualizamos el botón de generación a "TODAS LAS GENERACIONES"
                     val generationBtn = requireView().findViewById<Button>(R.id.generationButton)
                     generationBtn.text = "TODAS LAS GENERACIONES"
                     generationBtn.setBackgroundColor(defaultColor)
@@ -199,7 +197,6 @@ class HeaderFragment : Fragment() {
         }
     }
 
-    // Dentro de showGenerationFilterBottomSheet()
     private fun showGenerationFilterBottomSheet() {
         val bottomSheetDialog = BottomSheetDialog(requireContext())
         val bottomSheetView = layoutInflater.inflate(R.layout.bottom_sheet_type_filter, null)

@@ -13,9 +13,9 @@ data class Pokemon(
     val imageUrl: String,
     var isFavorite: Boolean = false,
     var isCaptured: Boolean = false,
-    val weight: Int? = null, // Peso en hectogramos
-    val height: Int? = null, // Altura en decímetros
-    val stats: Map<String, Int>? = null, // Estadísticas del Pokémon
+    val weight: Int? = null,
+    val height: Int? = null,
+    val stats: Map<String, Int>? = null,
     var evolutions: List<String>? = null
 ) : Parcelable {
 
@@ -103,8 +103,8 @@ data class PokemonDetailResponse(
 // Modelo para la respuesta de especie de Pokémon
 data class PokemonSpeciesResponse(
     val evolution_chain: EvolutionChainUrl,
-    val flavor_text_entries: List<FlavorTextEntry>, // Descripciones de la Pokédex
-    val genera: List<Genus>, // Descripción de la especie (como "Semilla Pokémon")
+    val flavor_text_entries: List<FlavorTextEntry>,
+    val genera: List<Genus>,
 )
 
 data class EvolutionChainUrl(
@@ -127,9 +127,9 @@ data class EvolutionSpecies(
 )
 
 data class FlavorTextEntry(
-    val flavor_text: String, // Texto de la descripción
-    val language: Language, // Idioma de la descripción
-    val version: Version // Versión del juego
+    val flavor_text: String,
+    val language: Language,
+    val version: Version
 )
 
 data class Language(
@@ -143,11 +143,11 @@ data class Version(
 )
 
 data class Genus(
-    val genus: String, // Descripción de la especie (como "Semilla Pokémon")
+    val genus: String,
     val language: Language
 )
 
 data class Cries(
-    val latest: String?, // URL del sonido más reciente
-    val legacy: String? // URL del sonido legacy (opcional)
+    val latest: String?,
+    val legacy: String?
 )
