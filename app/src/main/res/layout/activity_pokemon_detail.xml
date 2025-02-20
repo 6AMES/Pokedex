@@ -51,6 +51,7 @@
                                 android:id="@+id/pokemonId"
                                 android:layout_width="50dp"
                                 android:layout_height="wrap_content"
+                                android:padding="4dp"
                                 android:text="ID "
                                 android:textColor="@color/light_gray"
                                 android:textSize="16sp" />
@@ -59,16 +60,39 @@
                                 android:id="@+id/pokemonName"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:gravity="end"
+                                android:padding="4dp"
                                 android:text="Nombre"
                                 android:textColor="@color/white"
-                                android:textSize="16sp"
+                                android:textSize="20sp"
                                 android:textStyle="bold" />
                         </LinearLayout>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/pokemonSpeciesDescription"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="left"
+                            android:padding="4dp"
+                            android:text="Especie"
+                            android:textStyle="bold" />
 
                         <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="match_parent"
-                            android:layout_gravity="end"
+                            android:layout_gravity="right|end"
+                            android:layout_weight="0"
                             android:orientation="horizontal">
 
                             <ImageButton
@@ -88,7 +112,6 @@
                                 android:id="@+id/pokemonCaptured"
                                 android:layout_width="24dp"
                                 android:layout_height="match_parent"
-                                android:layout_marginEnd="8dp"
                                 android:backgroundTint="#00FFFFFF"
                                 android:clickable="true"
                                 android:focusable="true"
@@ -96,13 +119,14 @@
                                 android:src="@drawable/ic_captured_unselected"
                                 android:tint="@color/light_gray" />
                         </LinearLayout>
+
                     </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="match_parent"
                         android:layout_marginTop="4dp"
-                        android:gravity="center"
+                        android:layout_marginBottom="4dp"
                         android:orientation="horizontal">
 
                         <TextView
@@ -138,13 +162,11 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_marginTop="4dp"
-                        android:layout_marginBottom="4dp"
                         android:orientation="horizontal">
 
                         <TextView
                             android:id="@+id/pokemonGeneration"
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_horizontal"
                             android:layout_weight="1"
@@ -160,22 +182,12 @@
 
                 <ImageView
                     android:id="@+id/pokemonImage"
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
                     android:layout_marginStart="8dp"
                     tools:srcCompat="@tools:sample/avatars" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
-
-        <!-- Imagen del Pokémon -->
-
-        <!-- Tipos del Pokémon -->
-
-        <!-- Generación del Pokémon -->
-
-        <!-- ID del Pokémon -->
-
-        <!-- Estadísticas del Pokémon -->
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -211,34 +223,47 @@
                     android:padding="10dp">
 
                     <TextView
-                        android:id="@+id/descriptionTextView"
+                        android:id="@+id/pokemonDescription"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="center"
                         android:paddingTop="10dp"
-                        android:text="TOTAL"
+                        android:text="Description"
+                        android:textColor="@color/white"
                         android:textStyle="bold" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
+                        android:layout_marginTop="16dp"
+                        android:gravity="center_horizontal"
                         android:orientation="horizontal">
 
                         <TextView
                             android:id="@+id/pokemonWeight"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:paddingBottom="8dp"
+                            android:layout_marginRight="8dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/type_background"
+                            android:gravity="center"
+                            android:padding="4dp"
                             android:text="Weight: "
+                            android:textColor="@color/white"
                             android:textSize="16sp" />
 
                         <TextView
                             android:id="@+id/pokemonHeight"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:paddingBottom="8dp"
+                            android:layout_marginLeft="8dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/type_background"
+                            android:gravity="center"
+                            android:padding="4dp"
                             android:text="Height: "
+                            android:textColor="@color/white"
                             android:textSize="16sp" />
                     </LinearLayout>
 
@@ -253,15 +278,6 @@
 
             </androidx.cardview.widget.CardView>
 
-            <!-- Ataque -->
-
-            <!-- Defensa -->
-
-            <!-- Ataque Especial -->
-
-            <!-- Defensa Especial -->
-
-            <!-- Velocidad -->
         </LinearLayout>
 
         <LinearLayout
@@ -487,66 +503,19 @@
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>
-
-            <!-- Ataque -->
-
-            <!-- Defensa -->
-
-            <!-- Ataque Especial -->
-
-            <!-- Defensa Especial -->
-
-            <!-- Velocidad -->
         </LinearLayout>
 
-        <!-- Peso -->
-
-        <!-- Altura -->
-
-        <!-- Favorito -->
-
-        <!-- Capturado -->
-
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/pokemonEvolutions"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:layout_gravity="center"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:text="Evolutions: "
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
-            <!-- Otras vistas existentes -->
-
-            <!-- Descripción de la Pokédex -->
-            <TextView
-                android:id="@+id/pokemonDescription"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:textSize="16sp" />
-
-            <!-- Descripción de la especie -->
-            <TextView
-                android:id="@+id/pokemonSpeciesDescription"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textSize="16sp" />
-
-            <!-- Botón para reproducir el sonido -->
-
-            <TextView
-                android:id="@+id/pokemonEvolutions"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="16dp"
-                android:gravity="center"
-                android:text="Evolutions: "
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-        </LinearLayout>
-
-        <!-- Cadena evolutiva -->
         <LinearLayout
             android:id="@+id/evolutionContainer"
             android:layout_width="match_parent"
@@ -554,23 +523,51 @@
             android:gravity="center"
             android:orientation="horizontal">
 
-            <ImageView
-                android:id="@+id/evolutionImage1"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:scaleType="fitCenter" />
+            <androidx.cardview.widget.CardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/dark_gray"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:cardMaxElevation="0dp">
 
-            <ImageView
-                android:id="@+id/evolutionImage2"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:scaleType="fitCenter" />
+                <ImageView
+                    android:id="@+id/evolutionImage1"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:scaleType="fitCenter" />
+            </androidx.cardview.widget.CardView>
 
-            <ImageView
-                android:id="@+id/evolutionImage3"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:scaleType="fitCenter" />
+            <androidx.cardview.widget.CardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/dark_gray"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:cardMaxElevation="0dp">
+
+                <ImageView
+                    android:id="@+id/evolutionImage2"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:scaleType="fitCenter" />
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/dark_gray"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:cardMaxElevation="0dp">
+
+                <ImageView
+                    android:id="@+id/evolutionImage3"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:scaleType="fitCenter" />
+            </androidx.cardview.widget.CardView>
+
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

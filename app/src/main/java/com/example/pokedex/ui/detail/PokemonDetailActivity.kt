@@ -140,7 +140,7 @@ class PokemonDetailActivity : AppCompatActivity() {
 
         // Convertir la altura de decímetros a metros
         val heightInMeters = pokemon.height?.div(10.0) ?: 0
-        binding.pokemonHeight.text = "${heightInMeters} metros"
+        binding.pokemonHeight.text = "${heightInMeters} m"
 
         fun darkenColor(color: Int, factor: Float): Int {
             val red = Math.max(0, (Color.red(color) * factor).toInt())
@@ -383,31 +383,33 @@ class PokemonDetailActivity : AppCompatActivity() {
 
                 // Obtener la descripción de la Pokédex (en inglés)
                 val pokedexDescription = speciesResponse.flavor_text_entries
-                    .firstOrNull { it.language.name == "en" }?.flavor_text
-                    ?.replace("\n", " ") // Eliminar saltos de línea
+                    .firstOrNull { it.language.name == "es" }?.flavor_text
+                    ?.replace("\n", " ")
                     ?: "No description available"
-                Log.d("PokemonDetailActivity", "Pokedex Description: $pokedexDescription")
 
                 // Obtener la descripción de la especie (en inglés)
                 val speciesDescription = speciesResponse.genera
-                    .firstOrNull { it.language.name == "en" }?.genus
+                    .firstOrNull { it.language.name == "es" }?.genus
                     ?: "No species description available"
-                Log.d("PokemonDetailActivity", "Species Description: $speciesDescription")
 
                 // Obtener el sonido del Pokémon (usamos el sonido más reciente)
-                val pokemonSoundUrl = speciesResponse.cries.latest
+                val pokemonSoundUrl = speciesResponse.cries?.latest // Verificar si cries es null
                 Log.d("PokemonDetailActivity", "Pokemon Sound URL: $pokemonSoundUrl")
 
                 // Mostrar los detalles adicionales en la UI
                 runOnUiThread {
-                    binding.pokemonDescription.text = "Description: $pokedexDescription"
-                    binding.pokemonSpeciesDescription.text = "Species: $speciesDescription"
+                    binding.pokemonDescription.text = "$pokedexDescription"
+                    binding.pokemonSpeciesDescription.text = "$speciesDescription"
 
                     // Reproducir el sonido del Pokémon (opcional)
                     pokemonSoundUrl?.let { soundUrl ->
                         binding.pokemonSoundButton.setOnClickListener {
                             playPokemonSound(soundUrl)
                         }
+                    } ?: run {
+                        // Si no hay sonido disponible, deshabilitar el botón o mostrar un mensaje
+                        binding.pokemonSoundButton.isEnabled = false
+                        binding.pokemonSoundButton.text = "No sound available"
                     }
                 }
 
@@ -457,7 +459,7 @@ class PokemonDetailActivity : AppCompatActivity() {
             ViewGroup.LayoutParams.MATCH_PARENT
         } else {
             // Ancho en función del valor (puedes ajustar el valor multiplicado para obtener el efecto que desees)
-            val width = (value / 100f * 300f).toInt()  // Ajusta el 2ºf a lo que mejor se ajuste
+            val width = (value / 100f * 500f).toInt()  // Ajusta el 2ºf a lo que mejor se ajuste
             width
         }
         textView.layoutParams = layoutParams
