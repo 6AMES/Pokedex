@@ -7,12 +7,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import com.example.pokedex.R
 import com.example.pokedex.data.model.FilterType
 import com.example.pokedex.ui.pokedex.PokedexFragment
 import com.google.android.material.navigation.NavigationView
-import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -20,9 +18,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navigationView: NavigationView
 
     override fun onCreate(savedInstanceState: Bundle?) {
-
-        window.statusBarColor = ContextCompat.getColor(this, R.color.dark_gray)
-
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
@@ -42,6 +37,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupNavigationDrawer() {
+
+        window.statusBarColor = ContextCompat.getColor(this, R.color.dark_gray)
+
         // Configura el listener para los elementos del menú lateral
         navigationView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
